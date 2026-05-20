@@ -1,0 +1,5 @@
+data/*.tar.bz2 filter=lfs diff=lfs merge=lfs -text
+data/card_r/*.gz filter=lfs diff=lfs merge=lfs -text
+data/card_fasta/*.fasta filter=lfs diff=lfs merge=lfs -text
+data/card_fasta/*.json filter=lfs diff=lfs merge=lfs -text
+data/card_fasta/*.tsv filter=lfs diff=lfs merge=lfs -text
