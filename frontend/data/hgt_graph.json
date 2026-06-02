@@ -1,0 +1,3564 @@
+{
+  "meta": {
+    "n_nodes": 16,
+    "n_edges": 144,
+    "generated": "2026-06-03",
+    "jaccard_threshold": 0.1,
+    "min_weight": 0.05
+  },
+  "nodes": [
+    {
+      "id": 0,
+      "name": "Klebsiella pneumoniae",
+      "short": "K. pneumoniae",
+      "gram": "negative",
+      "role": "eskape",
+      "plasmid_args": 46,
+      "x": 120,
+      "y": 200
+    },
+    {
+      "id": 1,
+      "name": "Enterobacter cloacae",
+      "short": "E. cloacae",
+      "gram": "negative",
+      "role": "eskape",
+      "plasmid_args": 55,
+      "x": 120,
+      "y": 370
+    },
+    {
+      "id": 2,
+      "name": "Pseudomonas aeruginosa",
+      "short": "P. aeruginosa",
+      "gram": "negative",
+      "role": "eskape",
+      "plasmid_args": 38,
+      "x": 120,
+      "y": 540
+    },
+    {
+      "id": 3,
+      "name": "Enterococcus faecium",
+      "short": "E. faecium",
+      "gram": "positive",
+      "role": "eskape",
+      "plasmid_args": 22,
+      "x": 270,
+      "y": 120
+    },
+    {
+      "id": 4,
+      "name": "Staphylococcus aureus",
+      "short": "S. aureus",
+      "gram": "positive",
+      "role": "eskape",
+      "plasmid_args": 13,
+      "x": 270,
+      "y": 610
+    },
+    {
+      "id": 5,
+      "name": "Acinetobacter baumannii",
+      "short": "A. baumannii",
+      "gram": "negative",
+      "role": "eskape",
+      "plasmid_args": 15,
+      "x": 270,
+      "y": 370
+    },
+    {
+      "id": 6,
+      "name": "Escherichia coli",
+      "short": "E. coli",
+      "gram": "negative",
+      "role": "bridge",
+      "plasmid_args": 24,
+      "x": 490,
+      "y": 200
+    },
+    {
+      "id": 7,
+      "name": "Salmonella enterica",
+      "short": "S. enterica",
+      "gram": "negative",
+      "role": "bridge",
+      "plasmid_args": 45,
+      "x": 510,
+      "y": 370
+    },
+    {
+      "id": 8,
+      "name": "Klebsiella oxytoca",
+      "short": "K. oxytoca",
+      "gram": "negative",
+      "role": "bridge",
+      "plasmid_args": 43,
+      "x": 490,
+      "y": 540
+    },
+    {
+      "id": 9,
+      "name": "Citrobacter freundii",
+      "short": "C. freundii",
+      "gram": "negative",
+      "role": "bridge",
+      "plasmid_args": 39,
+      "x": 660,
+      "y": 150
+    },
+    {
+      "id": 10,
+      "name": "Proteus mirabilis",
+      "short": "P. mirabilis",
+      "gram": "negative",
+      "role": "bridge",
+      "plasmid_args": 59,
+      "x": 670,
+      "y": 370
+    },
+    {
+      "id": 11,
+      "name": "Serratia marcescens",
+      "short": "S. marcescens",
+      "gram": "negative",
+      "role": "bridge",
+      "plasmid_args": 40,
+      "x": 660,
+      "y": 590
+    },
+    {
+      "id": 12,
+      "name": "Acinetobacter pittii",
+      "short": "A. pittii",
+      "gram": "negative",
+      "role": "bridge",
+      "plasmid_args": 14,
+      "x": 830,
+      "y": 230
+    },
+    {
+      "id": 13,
+      "name": "Pseudomonas putida",
+      "short": "P. putida",
+      "gram": "negative",
+      "role": "bridge",
+      "plasmid_args": 25,
+      "x": 840,
+      "y": 490
+    },
+    {
+      "id": 14,
+      "name": "Enterococcus faecalis",
+      "short": "E. faecalis",
+      "gram": "positive",
+      "role": "environmental",
+      "plasmid_args": 26,
+      "x": 1010,
+      "y": 540
+    },
+    {
+      "id": 15,
+      "name": "Campylobacter jejuni",
+      "short": "C. jejuni",
+      "gram": "negative",
+      "role": "environmental",
+      "plasmid_args": 7,
+      "x": 1010,
+      "y": 300
+    }
+  ],
+  "edges": [
+    {
+      "src": 0,
+      "tgt": 1,
+      "weight": 0.380597,
+      "dist": 0.966,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 2,
+      "weight": 0.15,
+      "dist": 1.8971,
+      "labels": [
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "BRP(MBL)"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 5,
+      "weight": 0.129808,
+      "dist": 2.0417,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "armA",
+        "arr-2",
+        "mphE"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 6,
+      "weight": 0.259615,
+      "dist": 1.3486,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 7,
+      "weight": 0.3,
+      "dist": 1.204,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 8,
+      "weight": 0.435484,
+      "dist": 0.8313,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 9,
+      "weight": 0.409091,
+      "dist": 0.8938,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 10,
+      "weight": 0.34375,
+      "dist": 1.0678,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 11,
+      "weight": 0.27381,
+      "dist": 1.2953,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 12,
+      "weight": 0.15,
+      "dist": 1.8971,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "NDM-1"
+      ]
+    },
+    {
+      "src": 0,
+      "tgt": 13,
+      "weight": 0.152542,
+      "dist": 1.8803,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 0,
+      "weight": 0.380597,
+      "dist": 0.966,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 2,
+      "weight": 0.144231,
+      "dist": 1.9363,
+      "labels": [
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 5,
+      "weight": 0.096774,
+      "dist": 2.3354,
+      "labels": [
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 6,
+      "weight": 0.205645,
+      "dist": 1.5816,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 7,
+      "weight": 0.25,
+      "dist": 1.3863,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 8,
+      "weight": 0.363636,
+      "dist": 1.0116,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "ANT(3'')-IIa"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 9,
+      "weight": 0.425,
+      "dist": 0.8557,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 10,
+      "weight": 0.267857,
+      "dist": 1.3173,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 11,
+      "weight": 0.313433,
+      "dist": 1.1602,
+      "labels": [
+        "AAC(6')-IIc",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(3'')-IIa"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 12,
+      "weight": 0.127119,
+      "dist": 2.0626,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "NDM-1"
+      ]
+    },
+    {
+      "src": 1,
+      "tgt": 13,
+      "weight": 0.1875,
+      "dist": 1.674,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "ANT(3'')-IIa"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 0,
+      "weight": 0.15,
+      "dist": 1.8971,
+      "labels": [
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "BRP(MBL)"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 1,
+      "weight": 0.144231,
+      "dist": 1.9363,
+      "labels": [
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 5,
+      "weight": 0.133333,
+      "dist": 2.0149,
+      "labels": [
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "arr-2",
+        "mphE"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 6,
+      "weight": 0.095455,
+      "dist": 2.3491,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "aadA",
+        "qacEdelta1"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 7,
+      "weight": 0.10274,
+      "dist": 2.2756,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "OXA-1",
+        "aadA"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 8,
+      "weight": 0.170455,
+      "dist": 1.7693,
+      "labels": [
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 9,
+      "weight": 0.125,
+      "dist": 2.0794,
+      "labels": [
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "BRP(MBL)"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 10,
+      "weight": 0.170886,
+      "dist": 1.7668,
+      "labels": [
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "BRP(MBL)"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 11,
+      "weight": 0.15,
+      "dist": 1.8971,
+      "labels": [
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib4",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 12,
+      "weight": 0.116667,
+      "dist": 2.1484,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 2,
+      "tgt": 13,
+      "weight": 0.3125,
+      "dist": 1.1632,
+      "labels": [
+        "AAC(6')-Ib4",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 3,
+      "tgt": 4,
+      "weight": 0.096774,
+      "dist": 2.3354,
+      "labels": [
+        "AAC(6')-Ie-APH(2'')-Ia"
+      ]
+    },
+    {
+      "src": 3,
+      "tgt": 14,
+      "weight": 0.714286,
+      "dist": 0.3365,
+      "labels": [
+        "AAC(6')-Ie-APH(2'')-Ia"
+      ]
+    },
+    {
+      "src": 3,
+      "tgt": 15,
+      "weight": 0.057692,
+      "dist": 2.8526,
+      "labels": [
+        "APH(3')-IIIa",
+        "SAT-4",
+        "tet(45)"
+      ]
+    },
+    {
+      "src": 4,
+      "tgt": 3,
+      "weight": 0.096774,
+      "dist": 2.3354,
+      "labels": [
+        "AAC(6')-Ie-APH(2'')-Ia"
+      ]
+    },
+    {
+      "src": 4,
+      "tgt": 14,
+      "weight": 0.110294,
+      "dist": 2.2046,
+      "labels": [
+        "AAC(6')-Ie-APH(2'')-Ia"
+      ]
+    },
+    {
+      "src": 4,
+      "tgt": 15,
+      "weight": 0.088235,
+      "dist": 2.4278,
+      "labels": [
+        "APH(3')-IIIa",
+        "SAT-4",
+        "tet(45)"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 0,
+      "weight": 0.129808,
+      "dist": 2.0417,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "armA",
+        "arr-2",
+        "mphE"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 1,
+      "weight": 0.096774,
+      "dist": 2.3354,
+      "labels": [
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 2,
+      "weight": 0.133333,
+      "dist": 2.0149,
+      "labels": [
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "arr-2",
+        "mphE"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 6,
+      "weight": 0.110294,
+      "dist": 2.2046,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "qacEdelta1",
+        "sul1",
+        "sul2"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 7,
+      "weight": 0.083333,
+      "dist": 2.4849,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "arr-2",
+        "qacEdelta1",
+        "sul1"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 8,
+      "weight": 0.12,
+      "dist": 2.1203,
+      "labels": [
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 9,
+      "weight": 0.076531,
+      "dist": 2.5701,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "qacEdelta1",
+        "sul1",
+        "sul2"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 10,
+      "weight": 0.117188,
+      "dist": 2.144,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-VIa",
+        "APH(6)-Id",
+        "armA",
+        "arr-2"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 11,
+      "weight": 0.109375,
+      "dist": 2.213,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "mphE",
+        "msrE",
+        "qacEdelta1"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 12,
+      "weight": 0.45,
+      "dist": 0.7985,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-VIa",
+        "APH(6)-Id",
+        "OXA-58",
+        "mphE"
+      ]
+    },
+    {
+      "src": 5,
+      "tgt": 13,
+      "weight": 0.132353,
+      "dist": 2.0223,
+      "labels": [
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "qacEdelta1",
+        "sul1"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 0,
+      "weight": 0.259615,
+      "dist": 1.3486,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 1,
+      "weight": 0.205645,
+      "dist": 1.5816,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 2,
+      "weight": 0.095455,
+      "dist": 2.3491,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "aadA",
+        "qacEdelta1"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 5,
+      "weight": 0.110294,
+      "dist": 2.2046,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "qacEdelta1",
+        "sul1",
+        "sul2"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 7,
+      "weight": 0.328125,
+      "dist": 1.1144,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 8,
+      "weight": 0.27551,
+      "dist": 1.2891,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "CTX-M-15"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 9,
+      "weight": 0.277174,
+      "dist": 1.2831,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 10,
+      "weight": 0.254032,
+      "dist": 1.3703,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 11,
+      "weight": 0.191176,
+      "dist": 1.6546,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "CTX-M-15",
+        "Mrx"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 12,
+      "weight": 0.169355,
+      "dist": 1.7758,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "qacEdelta1"
+      ]
+    },
+    {
+      "src": 6,
+      "tgt": 13,
+      "weight": 0.217105,
+      "dist": 1.5274,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 0,
+      "weight": 0.3,
+      "dist": 1.204,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 1,
+      "weight": 0.25,
+      "dist": 1.3863,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 2,
+      "weight": 0.10274,
+      "dist": 2.2756,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "OXA-1",
+        "aadA"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 5,
+      "weight": 0.083333,
+      "dist": 2.4849,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "arr-2",
+        "qacEdelta1",
+        "sul1"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 6,
+      "weight": 0.328125,
+      "dist": 1.1144,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 8,
+      "weight": 0.265385,
+      "dist": 1.3266,
+      "labels": [
+        "AAC(3)-IVa",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(4)-Ia"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 9,
+      "weight": 0.266129,
+      "dist": 1.3238,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 10,
+      "weight": 0.29,
+      "dist": 1.2379,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(3)-IVa",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 11,
+      "weight": 0.147887,
+      "dist": 1.9113,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "Mrx",
+        "OXA-1"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 12,
+      "weight": 0.117647,
+      "dist": 2.1401,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "floR"
+      ]
+    },
+    {
+      "src": 7,
+      "tgt": 13,
+      "weight": 0.155172,
+      "dist": 1.8632,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 0,
+      "weight": 0.435484,
+      "dist": 0.8313,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 1,
+      "weight": 0.363636,
+      "dist": 1.0116,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "ANT(3'')-IIa"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 2,
+      "weight": 0.170455,
+      "dist": 1.7693,
+      "labels": [
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 5,
+      "weight": 0.12,
+      "dist": 2.1203,
+      "labels": [
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 6,
+      "weight": 0.27551,
+      "dist": 1.2891,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "CTX-M-15"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 7,
+      "weight": 0.265385,
+      "dist": 1.3266,
+      "labels": [
+        "AAC(3)-IVa",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(4)-Ia"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 9,
+      "weight": 0.348214,
+      "dist": 1.0549,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 10,
+      "weight": 0.27,
+      "dist": 1.3093,
+      "labels": [
+        "AAC(3)-IVa",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 11,
+      "weight": 0.305085,
+      "dist": 1.1872,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(3'')-IIa"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 12,
+      "weight": 0.122449,
+      "dist": 2.1001,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 8,
+      "tgt": 13,
+      "weight": 0.212264,
+      "dist": 1.5499,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 0,
+      "weight": 0.409091,
+      "dist": 0.8938,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 1,
+      "weight": 0.425,
+      "dist": 0.8557,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 2,
+      "weight": 0.125,
+      "dist": 2.0794,
+      "labels": [
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "BRP(MBL)"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 5,
+      "weight": 0.076531,
+      "dist": 2.5701,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "qacEdelta1",
+        "sul1",
+        "sul2"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 6,
+      "weight": 0.277174,
+      "dist": 1.2831,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 7,
+      "weight": 0.266129,
+      "dist": 1.3238,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 8,
+      "weight": 0.348214,
+      "dist": 1.0549,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 10,
+      "weight": 0.270833,
+      "dist": 1.3063,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 11,
+      "weight": 0.289474,
+      "dist": 1.2397,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 12,
+      "weight": 0.133333,
+      "dist": 2.0149,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "NDM-1"
+      ]
+    },
+    {
+      "src": 9,
+      "tgt": 13,
+      "weight": 0.21,
+      "dist": 1.5606,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 0,
+      "weight": 0.34375,
+      "dist": 1.0678,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 1,
+      "weight": 0.267857,
+      "dist": 1.3173,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 2,
+      "weight": 0.170886,
+      "dist": 1.7668,
+      "labels": [
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "BRP(MBL)"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 5,
+      "weight": 0.117188,
+      "dist": 2.144,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-VIa",
+        "APH(6)-Id",
+        "armA",
+        "arr-2"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 6,
+      "weight": 0.254032,
+      "dist": 1.3703,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 7,
+      "weight": 0.29,
+      "dist": 1.2379,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(3)-IVa",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 8,
+      "weight": 0.27,
+      "dist": 1.3093,
+      "labels": [
+        "AAC(3)-IVa",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 9,
+      "weight": 0.270833,
+      "dist": 1.3063,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 11,
+      "weight": 0.189873,
+      "dist": 1.6614,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 12,
+      "weight": 0.147541,
+      "dist": 1.9136,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(3')-VIa",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 10,
+      "tgt": 13,
+      "weight": 0.163043,
+      "dist": 1.8137,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 0,
+      "weight": 0.27381,
+      "dist": 1.2953,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "APH(3'')-Ib",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 1,
+      "weight": 0.313433,
+      "dist": 1.1602,
+      "labels": [
+        "AAC(6')-IIc",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(3'')-IIa"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 2,
+      "weight": 0.15,
+      "dist": 1.8971,
+      "labels": [
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib4",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 5,
+      "weight": 0.109375,
+      "dist": 2.213,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "mphE",
+        "msrE",
+        "qacEdelta1"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 6,
+      "weight": 0.191176,
+      "dist": 1.6546,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "CTX-M-15",
+        "Mrx"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 7,
+      "weight": 0.147887,
+      "dist": 1.9113,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "Mrx",
+        "OXA-1"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 8,
+      "weight": 0.305085,
+      "dist": 1.1872,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "AAC(6')-Ib9",
+        "ANT(3'')-IIa"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 9,
+      "weight": 0.289474,
+      "dist": 1.2397,
+      "labels": [
+        "AAC(3)-IIe",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 10,
+      "weight": 0.189873,
+      "dist": 1.6614,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib10",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 12,
+      "weight": 0.130435,
+      "dist": 2.0369,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "NDM-1",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 11,
+      "tgt": 13,
+      "weight": 0.152778,
+      "dist": 1.8788,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib4",
+        "AAC(6')-Ib9",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 0,
+      "weight": 0.15,
+      "dist": 1.8971,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "NDM-1"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 1,
+      "weight": 0.127119,
+      "dist": 2.0626,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "NDM-1"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 2,
+      "weight": 0.116667,
+      "dist": 2.1484,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 5,
+      "weight": 0.45,
+      "dist": 0.7985,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-VIa",
+        "APH(6)-Id",
+        "OXA-58",
+        "mphE"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 6,
+      "weight": 0.169355,
+      "dist": 1.7758,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "qacEdelta1"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 7,
+      "weight": 0.117647,
+      "dist": 2.1401,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "floR"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 8,
+      "weight": 0.122449,
+      "dist": 2.1001,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 9,
+      "weight": 0.133333,
+      "dist": 2.0149,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "NDM-1"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 10,
+      "weight": 0.147541,
+      "dist": 1.9136,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(3')-VIa",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 11,
+      "weight": 0.130435,
+      "dist": 2.0369,
+      "labels": [
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "NDM-1",
+        "mphE",
+        "msrE"
+      ]
+    },
+    {
+      "src": 12,
+      "tgt": 13,
+      "weight": 0.164062,
+      "dist": 1.8075,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "qacEdelta1"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 0,
+      "weight": 0.152542,
+      "dist": 1.8803,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 1,
+      "weight": 0.1875,
+      "dist": 1.674,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "ANT(3'')-IIa"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 2,
+      "weight": 0.3125,
+      "dist": 1.1632,
+      "labels": [
+        "AAC(6')-Ib4",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 5,
+      "weight": 0.132353,
+      "dist": 2.0223,
+      "labels": [
+        "ANT(2'')-Ia",
+        "APH(3'')-Ib",
+        "APH(6)-Id",
+        "qacEdelta1",
+        "sul1"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 6,
+      "weight": 0.217105,
+      "dist": 1.5274,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 7,
+      "weight": 0.155172,
+      "dist": 1.8632,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 8,
+      "weight": 0.212264,
+      "dist": 1.5499,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "ANT(2'')-Ia",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 9,
+      "weight": 0.21,
+      "dist": 1.5606,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib9",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 10,
+      "weight": 0.163043,
+      "dist": 1.8137,
+      "labels": [
+        "AAC(3)-IId",
+        "AAC(6')-Ib-cr6",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib",
+        "APH(3')-Ia"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 11,
+      "weight": 0.152778,
+      "dist": 1.8788,
+      "labels": [
+        "AAC(6')-Ib-cr6",
+        "AAC(6')-Ib4",
+        "AAC(6')-Ib9",
+        "ANT(3'')-IIa",
+        "APH(3'')-Ib"
+      ]
+    },
+    {
+      "src": 13,
+      "tgt": 12,
+      "weight": 0.164062,
+      "dist": 1.8075,
+      "labels": [
+        "AAC(3)-IId",
+        "APH(3'')-Ib",
+        "APH(3')-Ia",
+        "APH(6)-Id",
+        "qacEdelta1"
+      ]
+    },
+    {
+      "src": 14,
+      "tgt": 3,
+      "weight": 0.714286,
+      "dist": 0.3365,
+      "labels": [
+        "AAC(6')-Ie-APH(2'')-Ia"
+      ]
+    },
+    {
+      "src": 14,
+      "tgt": 4,
+      "weight": 0.110294,
+      "dist": 2.2046,
+      "labels": [
+        "AAC(6')-Ie-APH(2'')-Ia"
+      ]
+    },
+    {
+      "src": 14,
+      "tgt": 15,
+      "weight": 0.05,
+      "dist": 2.9957,
+      "labels": [
+        "APH(3')-IIIa",
+        "SAT-4",
+        "tet(45)"
+      ]
+    },
+    {
+      "src": 15,
+      "tgt": 3,
+      "weight": 0.057692,
+      "dist": 2.8526,
+      "labels": [
+        "APH(3')-IIIa",
+        "SAT-4",
+        "tet(45)"
+      ]
+    },
+    {
+      "src": 15,
+      "tgt": 4,
+      "weight": 0.088235,
+      "dist": 2.4278,
+      "labels": [
+        "APH(3')-IIIa",
+        "SAT-4",
+        "tet(45)"
+      ]
+    },
+    {
+      "src": 15,
+      "tgt": 14,
+      "weight": 0.05,
+      "dist": 2.9957,
+      "labels": [
+        "APH(3')-IIIa",
+        "SAT-4",
+        "tet(45)"
+      ]
+    }
+  ],
+  "algorithms": {
+    "bfs": {
+      "source": 0,
+      "source_name": "Klebsiella pneumoniae",
+      "distances": [
+        0,
+        1,
+        1,
+        -1,
+        -1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        -1,
+        -1
+      ],
+      "parent": [
+        -1,
+        0,
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        -1
+      ],
+      "reachable": 12
+    },
+    "scc": {
+      "n_components": 2,
+      "component_of": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "groups": [
+        [
+          3,
+          4,
+          14,
+          15
+        ],
+        [
+          0,
+          1,
+          2,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ]
+      ],
+      "sizes": [
+        4,
+        12
+      ]
+    },
+    "topo_sort": {
+      "dag_nodes": [
+        "tetM",
+        "sul1",
+        "blaTEM",
+        "blaSHV",
+        "aac6Ib",
+        "blaCTXM",
+        "blaOXA48",
+        "blaNDM1",
+        "mcr1",
+        "vanA"
+      ],
+      "dag_edges": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          5
+        ],
+        [
+          4,
+          7
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          5,
+          8
+        ],
+        [
+          6,
+          7
+        ]
+      ],
+      "order": [
+        "tetM",
+        "sul1",
+        "aac6Ib",
+        "vanA",
+        "blaTEM",
+        "blaSHV",
+        "blaCTXM",
+        "blaOXA48",
+        "mcr1",
+        "blaNDM1"
+      ],
+      "order_indices": [
+        0,
+        1,
+        4,
+        9,
+        2,
+        3,
+        5,
+        6,
+        8,
+        7
+      ],
+      "has_cycle": false
+    },
+    "boyer_moore": {
+      "pattern": "ATGGAATTGCCCAATATTATGCACCCGGTC",
+      "pattern_length": 30,
+      "gene_name": "NDM-1",
+      "text_length": 1626,
+      "matches": [
+        0,
+        813
+      ],
+      "comparisons_bm": 951,
+      "comparisons_naive": 2119,
+      "speedup": 2.23
+    },
+    "dijkstra": {
+      "source": 0,
+      "source_name": "Klebsiella pneumoniae",
+      "distances": [
+        0.0,
+        0.966,
+        1.8971,
+        null,
+        null,
+        2.0417,
+        1.3486,
+        1.204,
+        0.8313,
+        0.8938,
+        1.0678,
+        1.2953,
+        1.8971,
+        1.8803,
+        null,
+        null
+      ],
+      "parent": [
+        -1,
+        0,
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        -1
+      ],
+      "eskape_paths": {
+        "1": {
+          "path": [
+            0,
+            1
+          ],
+          "dist": 0.966,
+          "probability": 0.3806,
+          "target_name": "Enterobacter cloacae"
+        },
+        "2": {
+          "path": [
+            0,
+            2
+          ],
+          "dist": 1.8971,
+          "probability": 0.15,
+          "target_name": "Pseudomonas aeruginosa"
+        },
+        "3": {
+          "path": [],
+          "dist": Infinity,
+          "probability": 0.0,
+          "target_name": "Enterococcus faecium"
+        },
+        "4": {
+          "path": [],
+          "dist": Infinity,
+          "probability": 0.0,
+          "target_name": "Staphylococcus aureus"
+        },
+        "5": {
+          "path": [
+            0,
+            5
+          ],
+          "dist": 2.0417,
+          "probability": 0.1298,
+          "target_name": "Acinetobacter baumannii"
+        }
+      },
+      "highest_risk": {
+        "src": 3,
+        "tgt": 14,
+        "src_name": "Enterococcus faecium",
+        "tgt_name": "Enterococcus faecalis",
+        "probability": 0.7143
+      }
+    },
+    "floyd_warshall": {
+      "dist_matrix": [
+        [
+          0.0,
+          0.966,
+          1.8971,
+          null,
+          null,
+          2.0417,
+          1.3486,
+          1.204,
+          0.8313,
+          0.8938,
+          1.0678,
+          1.2953,
+          1.8971,
+          1.8803,
+          null,
+          null
+        ],
+        [
+          0.966,
+          0.0,
+          1.9363,
+          null,
+          null,
+          2.3354,
+          1.5816,
+          1.3863,
+          1.0116,
+          0.8557,
+          1.3173,
+          1.1602,
+          2.0626,
+          1.674,
+          null,
+          null
+        ],
+        [
+          1.8971,
+          1.9363,
+          0.0,
+          null,
+          null,
+          2.0149,
+          2.3491,
+          2.2756,
+          1.7693,
+          2.0794,
+          1.7668,
+          1.8971,
+          2.1484,
+          1.1632,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          0.0,
+          2.3354,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          0.3365,
+          2.8526
+        ],
+        [
+          null,
+          null,
+          null,
+          2.3354,
+          0.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          2.2046,
+          2.4278
+        ],
+        [
+          2.0417,
+          2.3354,
+          2.0149,
+          null,
+          null,
+          0.0,
+          2.2046,
+          2.4849,
+          2.1203,
+          2.5701,
+          2.144,
+          2.213,
+          0.7985,
+          2.0223,
+          null,
+          null
+        ],
+        [
+          1.3486,
+          1.5816,
+          2.3491,
+          null,
+          null,
+          2.2046,
+          0.0,
+          1.1144,
+          1.2891,
+          1.2831,
+          1.3703,
+          1.6546,
+          1.7758,
+          1.5274,
+          null,
+          null
+        ],
+        [
+          1.204,
+          1.3863,
+          2.2756,
+          null,
+          null,
+          2.4849,
+          1.1144,
+          0.0,
+          1.3266,
+          1.3238,
+          1.2379,
+          1.9113,
+          2.1401,
+          1.8632,
+          null,
+          null
+        ],
+        [
+          0.8313,
+          1.0116,
+          1.7693,
+          null,
+          null,
+          2.1203,
+          1.2891,
+          1.3266,
+          0.0,
+          1.0549,
+          1.3093,
+          1.1872,
+          2.1001,
+          1.5499,
+          null,
+          null
+        ],
+        [
+          0.8938,
+          0.8557,
+          2.0794,
+          null,
+          null,
+          2.5701,
+          1.2831,
+          1.3238,
+          1.0549,
+          0.0,
+          1.3063,
+          1.2397,
+          2.0149,
+          1.5606,
+          null,
+          null
+        ],
+        [
+          1.0678,
+          1.3173,
+          1.7668,
+          null,
+          null,
+          2.144,
+          1.3703,
+          1.2379,
+          1.3093,
+          1.3063,
+          0.0,
+          1.6614,
+          1.9136,
+          1.8137,
+          null,
+          null
+        ],
+        [
+          1.2953,
+          1.1602,
+          1.8971,
+          null,
+          null,
+          2.213,
+          1.6546,
+          1.9113,
+          1.1872,
+          1.2397,
+          1.6614,
+          0.0,
+          2.0369,
+          1.8788,
+          null,
+          null
+        ],
+        [
+          1.8971,
+          2.0626,
+          2.1484,
+          null,
+          null,
+          0.7985,
+          1.7758,
+          2.1401,
+          2.1001,
+          2.0149,
+          1.9136,
+          2.0369,
+          0.0,
+          1.8075,
+          null,
+          null
+        ],
+        [
+          1.8803,
+          1.674,
+          1.1632,
+          null,
+          null,
+          2.0223,
+          1.5274,
+          1.8632,
+          1.5499,
+          1.5606,
+          1.8137,
+          1.8788,
+          1.8075,
+          0.0,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          0.3365,
+          2.2046,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          0.0,
+          2.9957
+        ],
+        [
+          null,
+          null,
+          null,
+          2.8526,
+          2.4278,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          2.9957,
+          0.0
+        ]
+      ],
+      "vulnerability_scores": [
+        1.393,
+        1.4806,
+        1.9361,
+        1.8415,
+        2.3226,
+        2.0863,
+        1.5908,
+        1.6607,
+        1.4136,
+        1.4711,
+        1.5371,
+        1.6487,
+        1.8814,
+        1.7037,
+        1.8456,
+        2.7587
+      ],
+      "most_vulnerable": 0,
+      "most_vulnerable_name": "Klebsiella pneumoniae"
+    },
+    "greedy_contain": {
+      "note": "Graph has 2 components. Sources can only reach Gram-positive ESKAPE.",
+      "sources": [
+        14,
+        15
+      ],
+      "source_names": [
+        "Enterococcus faecalis",
+        "Campylobacter jejuni"
+      ],
+      "targets": [
+        3,
+        4
+      ],
+      "target_names": [
+        "Enterococcus faecium",
+        "Staphylococcus aureus"
+      ],
+      "removed_edges": [
+        {
+          "src": 14,
+          "tgt": 3,
+          "weight": 0.714286
+        },
+        {
+          "src": 3,
+          "tgt": 14,
+          "weight": 0.714286
+        },
+        {
+          "src": 12,
+          "tgt": 5,
+          "weight": 0.45
+        },
+        {
+          "src": 5,
+          "tgt": 12,
+          "weight": 0.45
+        },
+        {
+          "src": 8,
+          "tgt": 0,
+          "weight": 0.435484
+        },
+        {
+          "src": 0,
+          "tgt": 8,
+          "weight": 0.435484
+        },
+        {
+          "src": 9,
+          "tgt": 1,
+          "weight": 0.425
+        },
+        {
+          "src": 1,
+          "tgt": 9,
+          "weight": 0.425
+        },
+        {
+          "src": 9,
+          "tgt": 0,
+          "weight": 0.409091
+        },
+        {
+          "src": 0,
+          "tgt": 9,
+          "weight": 0.409091
+        },
+        {
+          "src": 1,
+          "tgt": 0,
+          "weight": 0.380597
+        },
+        {
+          "src": 0,
+          "tgt": 1,
+          "weight": 0.380597
+        },
+        {
+          "src": 8,
+          "tgt": 1,
+          "weight": 0.363636
+        },
+        {
+          "src": 1,
+          "tgt": 8,
+          "weight": 0.363636
+        },
+        {
+          "src": 9,
+          "tgt": 8,
+          "weight": 0.348214
+        },
+        {
+          "src": 8,
+          "tgt": 9,
+          "weight": 0.348214
+        },
+        {
+          "src": 10,
+          "tgt": 0,
+          "weight": 0.34375
+        },
+        {
+          "src": 0,
+          "tgt": 10,
+          "weight": 0.34375
+        },
+        {
+          "src": 7,
+          "tgt": 6,
+          "weight": 0.328125
+        },
+        {
+          "src": 6,
+          "tgt": 7,
+          "weight": 0.328125
+        },
+        {
+          "src": 11,
+          "tgt": 1,
+          "weight": 0.313433
+        },
+        {
+          "src": 1,
+          "tgt": 11,
+          "weight": 0.313433
+        },
+        {
+          "src": 13,
+          "tgt": 2,
+          "weight": 0.3125
+        },
+        {
+          "src": 2,
+          "tgt": 13,
+          "weight": 0.3125
+        },
+        {
+          "src": 11,
+          "tgt": 8,
+          "weight": 0.305085
+        },
+        {
+          "src": 8,
+          "tgt": 11,
+          "weight": 0.305085
+        },
+        {
+          "src": 7,
+          "tgt": 0,
+          "weight": 0.3
+        },
+        {
+          "src": 0,
+          "tgt": 7,
+          "weight": 0.3
+        },
+        {
+          "src": 10,
+          "tgt": 7,
+          "weight": 0.29
+        },
+        {
+          "src": 7,
+          "tgt": 10,
+          "weight": 0.29
+        },
+        {
+          "src": 11,
+          "tgt": 9,
+          "weight": 0.289474
+        },
+        {
+          "src": 9,
+          "tgt": 11,
+          "weight": 0.289474
+        },
+        {
+          "src": 9,
+          "tgt": 6,
+          "weight": 0.277174
+        },
+        {
+          "src": 6,
+          "tgt": 9,
+          "weight": 0.277174
+        },
+        {
+          "src": 8,
+          "tgt": 6,
+          "weight": 0.27551
+        },
+        {
+          "src": 6,
+          "tgt": 8,
+          "weight": 0.27551
+        },
+        {
+          "src": 11,
+          "tgt": 0,
+          "weight": 0.27381
+        },
+        {
+          "src": 0,
+          "tgt": 11,
+          "weight": 0.27381
+        },
+        {
+          "src": 10,
+          "tgt": 9,
+          "weight": 0.270833
+        },
+        {
+          "src": 9,
+          "tgt": 10,
+          "weight": 0.270833
+        },
+        {
+          "src": 10,
+          "tgt": 8,
+          "weight": 0.27
+        },
+        {
+          "src": 8,
+          "tgt": 10,
+          "weight": 0.27
+        },
+        {
+          "src": 10,
+          "tgt": 1,
+          "weight": 0.267857
+        },
+        {
+          "src": 1,
+          "tgt": 10,
+          "weight": 0.267857
+        },
+        {
+          "src": 9,
+          "tgt": 7,
+          "weight": 0.266129
+        },
+        {
+          "src": 7,
+          "tgt": 9,
+          "weight": 0.266129
+        },
+        {
+          "src": 8,
+          "tgt": 7,
+          "weight": 0.265385
+        },
+        {
+          "src": 7,
+          "tgt": 8,
+          "weight": 0.265385
+        },
+        {
+          "src": 6,
+          "tgt": 0,
+          "weight": 0.259615
+        },
+        {
+          "src": 0,
+          "tgt": 6,
+          "weight": 0.259615
+        },
+        {
+          "src": 10,
+          "tgt": 6,
+          "weight": 0.254032
+        },
+        {
+          "src": 6,
+          "tgt": 10,
+          "weight": 0.254032
+        },
+        {
+          "src": 7,
+          "tgt": 1,
+          "weight": 0.25
+        },
+        {
+          "src": 1,
+          "tgt": 7,
+          "weight": 0.25
+        },
+        {
+          "src": 13,
+          "tgt": 6,
+          "weight": 0.217105
+        },
+        {
+          "src": 6,
+          "tgt": 13,
+          "weight": 0.217105
+        },
+        {
+          "src": 13,
+          "tgt": 8,
+          "weight": 0.212264
+        },
+        {
+          "src": 8,
+          "tgt": 13,
+          "weight": 0.212264
+        },
+        {
+          "src": 13,
+          "tgt": 9,
+          "weight": 0.21
+        },
+        {
+          "src": 9,
+          "tgt": 13,
+          "weight": 0.21
+        },
+        {
+          "src": 6,
+          "tgt": 1,
+          "weight": 0.205645
+        },
+        {
+          "src": 1,
+          "tgt": 6,
+          "weight": 0.205645
+        },
+        {
+          "src": 11,
+          "tgt": 6,
+          "weight": 0.191176
+        },
+        {
+          "src": 6,
+          "tgt": 11,
+          "weight": 0.191176
+        },
+        {
+          "src": 11,
+          "tgt": 10,
+          "weight": 0.189873
+        },
+        {
+          "src": 10,
+          "tgt": 11,
+          "weight": 0.189873
+        },
+        {
+          "src": 13,
+          "tgt": 1,
+          "weight": 0.1875
+        },
+        {
+          "src": 1,
+          "tgt": 13,
+          "weight": 0.1875
+        },
+        {
+          "src": 10,
+          "tgt": 2,
+          "weight": 0.170886
+        },
+        {
+          "src": 2,
+          "tgt": 10,
+          "weight": 0.170886
+        },
+        {
+          "src": 8,
+          "tgt": 2,
+          "weight": 0.170455
+        },
+        {
+          "src": 2,
+          "tgt": 8,
+          "weight": 0.170455
+        },
+        {
+          "src": 12,
+          "tgt": 6,
+          "weight": 0.169355
+        },
+        {
+          "src": 6,
+          "tgt": 12,
+          "weight": 0.169355
+        },
+        {
+          "src": 13,
+          "tgt": 12,
+          "weight": 0.164062
+        },
+        {
+          "src": 12,
+          "tgt": 13,
+          "weight": 0.164062
+        },
+        {
+          "src": 13,
+          "tgt": 10,
+          "weight": 0.163043
+        },
+        {
+          "src": 10,
+          "tgt": 13,
+          "weight": 0.163043
+        },
+        {
+          "src": 13,
+          "tgt": 7,
+          "weight": 0.155172
+        },
+        {
+          "src": 7,
+          "tgt": 13,
+          "weight": 0.155172
+        },
+        {
+          "src": 13,
+          "tgt": 11,
+          "weight": 0.152778
+        },
+        {
+          "src": 11,
+          "tgt": 13,
+          "weight": 0.152778
+        },
+        {
+          "src": 13,
+          "tgt": 0,
+          "weight": 0.152542
+        },
+        {
+          "src": 0,
+          "tgt": 13,
+          "weight": 0.152542
+        },
+        {
+          "src": 12,
+          "tgt": 0,
+          "weight": 0.15
+        },
+        {
+          "src": 11,
+          "tgt": 2,
+          "weight": 0.15
+        },
+        {
+          "src": 2,
+          "tgt": 11,
+          "weight": 0.15
+        },
+        {
+          "src": 2,
+          "tgt": 0,
+          "weight": 0.15
+        },
+        {
+          "src": 0,
+          "tgt": 12,
+          "weight": 0.15
+        },
+        {
+          "src": 0,
+          "tgt": 2,
+          "weight": 0.15
+        },
+        {
+          "src": 11,
+          "tgt": 7,
+          "weight": 0.147887
+        },
+        {
+          "src": 7,
+          "tgt": 11,
+          "weight": 0.147887
+        },
+        {
+          "src": 12,
+          "tgt": 10,
+          "weight": 0.147541
+        },
+        {
+          "src": 10,
+          "tgt": 12,
+          "weight": 0.147541
+        },
+        {
+          "src": 2,
+          "tgt": 1,
+          "weight": 0.144231
+        },
+        {
+          "src": 1,
+          "tgt": 2,
+          "weight": 0.144231
+        },
+        {
+          "src": 12,
+          "tgt": 9,
+          "weight": 0.133333
+        },
+        {
+          "src": 9,
+          "tgt": 12,
+          "weight": 0.133333
+        },
+        {
+          "src": 5,
+          "tgt": 2,
+          "weight": 0.133333
+        },
+        {
+          "src": 2,
+          "tgt": 5,
+          "weight": 0.133333
+        },
+        {
+          "src": 13,
+          "tgt": 5,
+          "weight": 0.132353
+        },
+        {
+          "src": 5,
+          "tgt": 13,
+          "weight": 0.132353
+        },
+        {
+          "src": 12,
+          "tgt": 11,
+          "weight": 0.130435
+        },
+        {
+          "src": 11,
+          "tgt": 12,
+          "weight": 0.130435
+        },
+        {
+          "src": 5,
+          "tgt": 0,
+          "weight": 0.129808
+        },
+        {
+          "src": 0,
+          "tgt": 5,
+          "weight": 0.129808
+        },
+        {
+          "src": 12,
+          "tgt": 1,
+          "weight": 0.127119
+        },
+        {
+          "src": 1,
+          "tgt": 12,
+          "weight": 0.127119
+        },
+        {
+          "src": 9,
+          "tgt": 2,
+          "weight": 0.125
+        },
+        {
+          "src": 2,
+          "tgt": 9,
+          "weight": 0.125
+        },
+        {
+          "src": 12,
+          "tgt": 8,
+          "weight": 0.122449
+        },
+        {
+          "src": 8,
+          "tgt": 12,
+          "weight": 0.122449
+        },
+        {
+          "src": 8,
+          "tgt": 5,
+          "weight": 0.12
+        },
+        {
+          "src": 5,
+          "tgt": 8,
+          "weight": 0.12
+        },
+        {
+          "src": 12,
+          "tgt": 7,
+          "weight": 0.117647
+        },
+        {
+          "src": 7,
+          "tgt": 12,
+          "weight": 0.117647
+        },
+        {
+          "src": 10,
+          "tgt": 5,
+          "weight": 0.117188
+        },
+        {
+          "src": 5,
+          "tgt": 10,
+          "weight": 0.117188
+        },
+        {
+          "src": 12,
+          "tgt": 2,
+          "weight": 0.116667
+        },
+        {
+          "src": 2,
+          "tgt": 12,
+          "weight": 0.116667
+        },
+        {
+          "src": 14,
+          "tgt": 4,
+          "weight": 0.110294
+        },
+        {
+          "src": 6,
+          "tgt": 5,
+          "weight": 0.110294
+        },
+        {
+          "src": 5,
+          "tgt": 6,
+          "weight": 0.110294
+        },
+        {
+          "src": 4,
+          "tgt": 14,
+          "weight": 0.110294
+        },
+        {
+          "src": 11,
+          "tgt": 5,
+          "weight": 0.109375
+        },
+        {
+          "src": 5,
+          "tgt": 11,
+          "weight": 0.109375
+        },
+        {
+          "src": 7,
+          "tgt": 2,
+          "weight": 0.10274
+        },
+        {
+          "src": 2,
+          "tgt": 7,
+          "weight": 0.10274
+        },
+        {
+          "src": 5,
+          "tgt": 1,
+          "weight": 0.096774
+        },
+        {
+          "src": 4,
+          "tgt": 3,
+          "weight": 0.096774
+        },
+        {
+          "src": 3,
+          "tgt": 4,
+          "weight": 0.096774
+        },
+        {
+          "src": 1,
+          "tgt": 5,
+          "weight": 0.096774
+        },
+        {
+          "src": 6,
+          "tgt": 2,
+          "weight": 0.095455
+        },
+        {
+          "src": 2,
+          "tgt": 6,
+          "weight": 0.095455
+        },
+        {
+          "src": 15,
+          "tgt": 4,
+          "weight": 0.088235
+        },
+        {
+          "src": 4,
+          "tgt": 15,
+          "weight": 0.088235
+        },
+        {
+          "src": 7,
+          "tgt": 5,
+          "weight": 0.083333
+        },
+        {
+          "src": 5,
+          "tgt": 7,
+          "weight": 0.083333
+        },
+        {
+          "src": 9,
+          "tgt": 5,
+          "weight": 0.076531
+        },
+        {
+          "src": 5,
+          "tgt": 9,
+          "weight": 0.076531
+        },
+        {
+          "src": 15,
+          "tgt": 3,
+          "weight": 0.057692
+        }
+      ],
+      "n_removed": 141
+    },
+    "bnb_contain": {
+      "note": "Hospital subgraph has 2 sub-components. B&B targets Gram-positive ESKAPE reachable from env sources.",
+      "hospital_node_names": [
+        "Klebsiella pneumoniae",
+        "Enterobacter cloacae",
+        "Pseudomonas aeruginosa",
+        "Enterococcus faecium",
+        "Staphylococcus aureus",
+        "Acinetobacter baumannii",
+        "Escherichia coli",
+        "Salmonella enterica",
+        "Enterococcus faecalis",
+        "Campylobacter jejuni"
+      ],
+      "sources": [
+        8,
+        9
+      ],
+      "source_names": [
+        "Enterococcus faecalis",
+        "Campylobacter jejuni"
+      ],
+      "targets": [
+        3,
+        4
+      ],
+      "target_names": [
+        "Enterococcus faecium",
+        "Staphylococcus aureus"
+      ],
+      "optimal_removed": [
+        {
+          "src": 8,
+          "tgt": 3,
+          "weight": 0.714286
+        },
+        {
+          "src": 8,
+          "tgt": 4,
+          "weight": 0.110294
+        },
+        {
+          "src": 9,
+          "tgt": 4,
+          "weight": 0.088235
+        },
+        {
+          "src": 9,
+          "tgt": 3,
+          "weight": 0.057692
+        }
+      ],
+      "optimal_cost": 4,
+      "greedy_removed": [
+        {
+          "src": 8,
+          "tgt": 3,
+          "weight": 0.714286
+        },
+        {
+          "src": 3,
+          "tgt": 8,
+          "weight": 0.714286
+        },
+        {
+          "src": 1,
+          "tgt": 0,
+          "weight": 0.380597
+        },
+        {
+          "src": 0,
+          "tgt": 1,
+          "weight": 0.380597
+        },
+        {
+          "src": 7,
+          "tgt": 6,
+          "weight": 0.328125
+        },
+        {
+          "src": 6,
+          "tgt": 7,
+          "weight": 0.328125
+        },
+        {
+          "src": 7,
+          "tgt": 0,
+          "weight": 0.3
+        },
+        {
+          "src": 0,
+          "tgt": 7,
+          "weight": 0.3
+        },
+        {
+          "src": 6,
+          "tgt": 0,
+          "weight": 0.259615
+        },
+        {
+          "src": 0,
+          "tgt": 6,
+          "weight": 0.259615
+        },
+        {
+          "src": 7,
+          "tgt": 1,
+          "weight": 0.25
+        },
+        {
+          "src": 1,
+          "tgt": 7,
+          "weight": 0.25
+        },
+        {
+          "src": 6,
+          "tgt": 1,
+          "weight": 0.205645
+        },
+        {
+          "src": 1,
+          "tgt": 6,
+          "weight": 0.205645
+        },
+        {
+          "src": 2,
+          "tgt": 0,
+          "weight": 0.15
+        },
+        {
+          "src": 0,
+          "tgt": 2,
+          "weight": 0.15
+        },
+        {
+          "src": 2,
+          "tgt": 1,
+          "weight": 0.144231
+        },
+        {
+          "src": 1,
+          "tgt": 2,
+          "weight": 0.144231
+        },
+        {
+          "src": 5,
+          "tgt": 2,
+          "weight": 0.133333
+        },
+        {
+          "src": 2,
+          "tgt": 5,
+          "weight": 0.133333
+        },
+        {
+          "src": 5,
+          "tgt": 0,
+          "weight": 0.129808
+        },
+        {
+          "src": 0,
+          "tgt": 5,
+          "weight": 0.129808
+        },
+        {
+          "src": 8,
+          "tgt": 4,
+          "weight": 0.110294
+        },
+        {
+          "src": 6,
+          "tgt": 5,
+          "weight": 0.110294
+        },
+        {
+          "src": 5,
+          "tgt": 6,
+          "weight": 0.110294
+        },
+        {
+          "src": 4,
+          "tgt": 8,
+          "weight": 0.110294
+        },
+        {
+          "src": 7,
+          "tgt": 2,
+          "weight": 0.10274
+        },
+        {
+          "src": 2,
+          "tgt": 7,
+          "weight": 0.10274
+        },
+        {
+          "src": 5,
+          "tgt": 1,
+          "weight": 0.096774
+        },
+        {
+          "src": 4,
+          "tgt": 3,
+          "weight": 0.096774
+        },
+        {
+          "src": 3,
+          "tgt": 4,
+          "weight": 0.096774
+        },
+        {
+          "src": 1,
+          "tgt": 5,
+          "weight": 0.096774
+        },
+        {
+          "src": 6,
+          "tgt": 2,
+          "weight": 0.095455
+        },
+        {
+          "src": 2,
+          "tgt": 6,
+          "weight": 0.095455
+        },
+        {
+          "src": 9,
+          "tgt": 4,
+          "weight": 0.088235
+        },
+        {
+          "src": 4,
+          "tgt": 9,
+          "weight": 0.088235
+        },
+        {
+          "src": 7,
+          "tgt": 5,
+          "weight": 0.083333
+        },
+        {
+          "src": 5,
+          "tgt": 7,
+          "weight": 0.083333
+        },
+        {
+          "src": 9,
+          "tgt": 3,
+          "weight": 0.057692
+        }
+      ],
+      "greedy_cost": 39
+    }
+  }
+}

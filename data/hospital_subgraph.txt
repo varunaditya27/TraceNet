@@ -1,0 +1,54 @@
+10
+42
+Klebsiella pneumoniae
+Enterobacter cloacae
+Pseudomonas aeruginosa
+Enterococcus faecium
+Staphylococcus aureus
+Acinetobacter baumannii
+Escherichia coli
+Salmonella enterica
+Enterococcus faecalis
+Campylobacter jejuni
+0 1 0.380597 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia
+1 0 0.380597 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia
+0 2 0.150000 AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,BRP(MBL)
+2 0 0.150000 AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,BRP(MBL)
+0 5 0.129808 APH(3'')-Ib,APH(6)-Id,armA,arr-2,mphE
+5 0 0.129808 APH(3'')-Ib,APH(6)-Id,armA,arr-2,mphE
+0 6 0.259615 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+6 0 0.259615 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+0 7 0.300000 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+7 0 0.300000 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+1 2 0.144231 AAC(6')-Ib10,AAC(6')-Ib9,ANT(2'')-Ia,APH(3'')-Ib,APH(3')-Ia
+2 1 0.144231 AAC(6')-Ib10,AAC(6')-Ib9,ANT(2'')-Ia,APH(3'')-Ib,APH(3')-Ia
+1 5 0.096774 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,mphE,msrE
+5 1 0.096774 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,mphE,msrE
+1 6 0.205645 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+6 1 0.205645 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+1 7 0.250000 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+7 1 0.250000 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+2 5 0.133333 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,arr-2,mphE
+5 2 0.133333 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,arr-2,mphE
+2 6 0.095455 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,aadA,qacEdelta1
+6 2 0.095455 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,aadA,qacEdelta1
+2 7 0.102740 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,OXA-1,aadA
+7 2 0.102740 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,OXA-1,aadA
+3 4 0.096774 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,APH(3')-IIIa,SAT-4,tet(45)
+4 3 0.096774 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,APH(3')-IIIa,SAT-4,tet(45)
+3 8 0.714286 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,ANT(6)-Ia,APH(3')-IIIa,ErmA,ErmB
+8 3 0.714286 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,ANT(6)-Ia,APH(3')-IIIa,ErmA,ErmB
+3 9 0.057692 APH(3')-IIIa,SAT-4,tet(45)
+9 3 0.057692 APH(3')-IIIa,SAT-4,tet(45)
+4 8 0.110294 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,ANT(4')-Ia,APH(3')-IIIa,SAT-4,tet(45)
+8 4 0.110294 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,ANT(4')-Ia,APH(3')-IIIa,SAT-4,tet(45)
+4 9 0.088235 APH(3')-IIIa,SAT-4,tet(45)
+9 4 0.088235 APH(3')-IIIa,SAT-4,tet(45)
+5 6 0.110294 APH(3'')-Ib,APH(6)-Id,qacEdelta1,sul1,sul2
+6 5 0.110294 APH(3'')-Ib,APH(6)-Id,qacEdelta1,sul1,sul2
+5 7 0.083333 APH(3'')-Ib,APH(6)-Id,arr-2,qacEdelta1,sul1
+7 5 0.083333 APH(3'')-Ib,APH(6)-Id,arr-2,qacEdelta1,sul1
+6 7 0.328125 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+7 6 0.328125 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+8 9 0.050000 APH(3')-IIIa,SAT-4,tet(45)
+9 8 0.050000 APH(3')-IIIa,SAT-4,tet(45)

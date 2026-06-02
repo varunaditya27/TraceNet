@@ -1,0 +1,20 @@
+10
+8
+tetM
+sul1
+blaTEM
+blaSHV
+aac6Ib
+blaCTXM
+blaOXA48
+blaNDM1
+mcr1
+vanA
+0 2
+1 2
+2 3
+3 5
+5 6
+6 7
+4 7
+5 8

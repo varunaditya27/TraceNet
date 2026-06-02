@@ -1,0 +1,162 @@
+16
+144
+Klebsiella pneumoniae
+Enterobacter cloacae
+Pseudomonas aeruginosa
+Enterococcus faecium
+Staphylococcus aureus
+Acinetobacter baumannii
+Escherichia coli
+Salmonella enterica
+Klebsiella oxytoca
+Citrobacter freundii
+Proteus mirabilis
+Serratia marcescens
+Acinetobacter pittii
+Pseudomonas putida
+Enterococcus faecalis
+Campylobacter jejuni
+0 1 0.380597 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia
+1 0 0.380597 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia
+0 2 0.150000 AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,BRP(MBL)
+2 0 0.150000 AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,BRP(MBL)
+0 5 0.129808 APH(3'')-Ib,APH(6)-Id,armA,arr-2,mphE
+5 0 0.129808 APH(3'')-Ib,APH(6)-Id,armA,arr-2,mphE
+0 6 0.259615 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+6 0 0.259615 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+0 7 0.300000 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+7 0 0.300000 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+0 8 0.435484 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia
+8 0 0.435484 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia
+0 9 0.409091 AAC(3)-IId,AAC(3)-IIe,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia
+9 0 0.409091 AAC(3)-IId,AAC(3)-IIe,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia
+0 10 0.343750 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia
+10 0 0.343750 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia
+0 11 0.273810 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(6)-Id
+11 0 0.273810 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib10,APH(3'')-Ib,APH(6)-Id
+0 12 0.150000 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,NDM-1
+12 0 0.150000 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,NDM-1
+0 13 0.152542 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+13 0 0.152542 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+1 2 0.144231 AAC(6')-Ib10,AAC(6')-Ib9,ANT(2'')-Ia,APH(3'')-Ib,APH(3')-Ia
+2 1 0.144231 AAC(6')-Ib10,AAC(6')-Ib9,ANT(2'')-Ia,APH(3'')-Ib,APH(3')-Ia
+1 5 0.096774 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,mphE,msrE
+5 1 0.096774 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,mphE,msrE
+1 6 0.205645 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+6 1 0.205645 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+1 7 0.250000 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+7 1 0.250000 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+1 8 0.363636 AAC(6')-Ib-cr6,AAC(6')-Ib10,AAC(6')-Ib9,ANT(2'')-Ia,ANT(3'')-IIa
+8 1 0.363636 AAC(6')-Ib-cr6,AAC(6')-Ib10,AAC(6')-Ib9,ANT(2'')-Ia,ANT(3'')-IIa
+1 9 0.425000 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib9,APH(3'')-Ib,APH(3')-Ia
+9 1 0.425000 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib9,APH(3'')-Ib,APH(3')-Ia
+1 10 0.267857 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib10,ANT(3'')-IIa,APH(3'')-Ib
+10 1 0.267857 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib10,ANT(3'')-IIa,APH(3'')-Ib
+1 11 0.313433 AAC(6')-IIc,AAC(6')-Ib-cr6,AAC(6')-Ib10,AAC(6')-Ib9,ANT(3'')-IIa
+11 1 0.313433 AAC(6')-IIc,AAC(6')-Ib-cr6,AAC(6')-Ib10,AAC(6')-Ib9,ANT(3'')-IIa
+1 12 0.127119 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,NDM-1
+12 1 0.127119 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,NDM-1
+1 13 0.187500 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib9,ANT(2'')-Ia,ANT(3'')-IIa
+13 1 0.187500 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib9,ANT(2'')-Ia,ANT(3'')-IIa
+2 5 0.133333 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,arr-2,mphE
+5 2 0.133333 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,arr-2,mphE
+2 6 0.095455 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,aadA,qacEdelta1
+6 2 0.095455 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,aadA,qacEdelta1
+2 7 0.102740 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,OXA-1,aadA
+7 2 0.102740 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,OXA-1,aadA
+2 8 0.170455 AAC(6')-Ib10,AAC(6')-Ib9,ANT(2'')-Ia,APH(3'')-Ib,APH(3')-Ia
+8 2 0.170455 AAC(6')-Ib10,AAC(6')-Ib9,ANT(2'')-Ia,APH(3'')-Ib,APH(3')-Ia
+2 9 0.125000 AAC(6')-Ib9,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,BRP(MBL)
+9 2 0.125000 AAC(6')-Ib9,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,BRP(MBL)
+2 10 0.170886 AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,BRP(MBL)
+10 2 0.170886 AAC(6')-Ib10,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,BRP(MBL)
+2 11 0.150000 AAC(6')-Ib10,AAC(6')-Ib4,AAC(6')-Ib9,APH(3'')-Ib,APH(6)-Id
+11 2 0.150000 AAC(6')-Ib10,AAC(6')-Ib4,AAC(6')-Ib9,APH(3'')-Ib,APH(6)-Id
+2 12 0.116667 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,mphE,msrE
+12 2 0.116667 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,mphE,msrE
+2 13 0.312500 AAC(6')-Ib4,AAC(6')-Ib9,ANT(2'')-Ia,APH(3'')-Ib,APH(3')-Ia
+13 2 0.312500 AAC(6')-Ib4,AAC(6')-Ib9,ANT(2'')-Ia,APH(3'')-Ib,APH(3')-Ia
+3 4 0.096774 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,APH(3')-IIIa,SAT-4,tet(45)
+4 3 0.096774 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,APH(3')-IIIa,SAT-4,tet(45)
+3 14 0.714286 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,ANT(6)-Ia,APH(3')-IIIa,ErmA,ErmB
+14 3 0.714286 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,ANT(6)-Ia,APH(3')-IIIa,ErmA,ErmB
+3 15 0.057692 APH(3')-IIIa,SAT-4,tet(45)
+15 3 0.057692 APH(3')-IIIa,SAT-4,tet(45)
+4 14 0.110294 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,ANT(4')-Ia,APH(3')-IIIa,SAT-4,tet(45)
+14 4 0.110294 AAC(6')-Ie-APH(2'')-Ia bifunctional protein,ANT(4')-Ia,APH(3')-IIIa,SAT-4,tet(45)
+4 15 0.088235 APH(3')-IIIa,SAT-4,tet(45)
+15 4 0.088235 APH(3')-IIIa,SAT-4,tet(45)
+5 6 0.110294 APH(3'')-Ib,APH(6)-Id,qacEdelta1,sul1,sul2
+6 5 0.110294 APH(3'')-Ib,APH(6)-Id,qacEdelta1,sul1,sul2
+5 7 0.083333 APH(3'')-Ib,APH(6)-Id,arr-2,qacEdelta1,sul1
+7 5 0.083333 APH(3'')-Ib,APH(6)-Id,arr-2,qacEdelta1,sul1
+5 8 0.120000 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,mphE,msrE
+8 5 0.120000 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,mphE,msrE
+5 9 0.076531 APH(3'')-Ib,APH(6)-Id,qacEdelta1,sul1,sul2
+9 5 0.076531 APH(3'')-Ib,APH(6)-Id,qacEdelta1,sul1,sul2
+5 10 0.117188 APH(3'')-Ib,APH(3')-VIa,APH(6)-Id,armA,arr-2
+10 5 0.117188 APH(3'')-Ib,APH(3')-VIa,APH(6)-Id,armA,arr-2
+5 11 0.109375 APH(3'')-Ib,APH(6)-Id,mphE,msrE,qacEdelta1
+11 5 0.109375 APH(3'')-Ib,APH(6)-Id,mphE,msrE,qacEdelta1
+5 12 0.450000 APH(3'')-Ib,APH(3')-VIa,APH(6)-Id,OXA-58,mphE
+12 5 0.450000 APH(3'')-Ib,APH(3')-VIa,APH(6)-Id,OXA-58,mphE
+5 13 0.132353 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,qacEdelta1,sul1
+13 5 0.132353 ANT(2'')-Ia,APH(3'')-Ib,APH(6)-Id,qacEdelta1,sul1
+6 7 0.328125 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+7 6 0.328125 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+6 8 0.275510 AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,CTX-M-15
+8 6 0.275510 AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,CTX-M-15
+6 9 0.277174 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+9 6 0.277174 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+6 10 0.254032 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+10 6 0.254032 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+6 11 0.191176 AAC(6')-Ib-cr6,APH(3'')-Ib,APH(6)-Id,CTX-M-15,Mrx
+11 6 0.191176 AAC(6')-Ib-cr6,APH(3'')-Ib,APH(6)-Id,CTX-M-15,Mrx
+6 12 0.169355 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,qacEdelta1
+12 6 0.169355 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,qacEdelta1
+6 13 0.217105 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+13 6 0.217105 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+7 8 0.265385 AAC(3)-IVa,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(4)-Ia
+8 7 0.265385 AAC(3)-IVa,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(4)-Ia
+7 9 0.266129 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+9 7 0.266129 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+7 10 0.290000 AAC(3)-IId,AAC(3)-IVa,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia
+10 7 0.290000 AAC(3)-IId,AAC(3)-IVa,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia
+7 11 0.147887 AAC(6')-Ib-cr6,APH(3'')-Ib,APH(6)-Id,Mrx,OXA-1
+11 7 0.147887 AAC(6')-Ib-cr6,APH(3'')-Ib,APH(6)-Id,Mrx,OXA-1
+7 12 0.117647 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,floR
+12 7 0.117647 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,floR
+7 13 0.155172 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+13 7 0.155172 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+8 9 0.348214 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib9,APH(3'')-Ib,APH(3')-Ia
+9 8 0.348214 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib9,APH(3'')-Ib,APH(3')-Ia
+8 10 0.270000 AAC(3)-IVa,AAC(6')-Ib-cr6,AAC(6')-Ib10,ANT(3'')-IIa,APH(3'')-Ib
+10 8 0.270000 AAC(3)-IVa,AAC(6')-Ib-cr6,AAC(6')-Ib10,ANT(3'')-IIa,APH(3'')-Ib
+8 11 0.305085 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib10,AAC(6')-Ib9,ANT(3'')-IIa
+11 8 0.305085 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib10,AAC(6')-Ib9,ANT(3'')-IIa
+8 12 0.122449 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,mphE,msrE
+12 8 0.122449 APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,mphE,msrE
+8 13 0.212264 AAC(6')-Ib-cr6,AAC(6')-Ib9,ANT(2'')-Ia,ANT(3'')-IIa,APH(3'')-Ib
+13 8 0.212264 AAC(6')-Ib-cr6,AAC(6')-Ib9,ANT(2'')-Ia,ANT(3'')-IIa,APH(3'')-Ib
+9 10 0.270833 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+10 9 0.270833 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
+9 11 0.289474 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib9,APH(3'')-Ib,APH(6)-Id
+11 9 0.289474 AAC(3)-IIe,AAC(6')-Ib-cr6,AAC(6')-Ib9,APH(3'')-Ib,APH(6)-Id
+9 12 0.133333 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,NDM-1
+12 9 0.133333 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,NDM-1
+9 13 0.210000 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib9,APH(3'')-Ib,APH(3')-Ia
+13 9 0.210000 AAC(3)-IId,AAC(6')-Ib-cr6,AAC(6')-Ib9,APH(3'')-Ib,APH(3')-Ia
+10 11 0.189873 AAC(6')-Ib-cr6,AAC(6')-Ib10,ANT(3'')-IIa,APH(3'')-Ib,APH(6)-Id
+11 10 0.189873 AAC(6')-Ib-cr6,AAC(6')-Ib10,ANT(3'')-IIa,APH(3'')-Ib,APH(6)-Id
+10 12 0.147541 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(3')-VIa,APH(6)-Id
+12 10 0.147541 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(3')-VIa,APH(6)-Id
+10 13 0.163043 AAC(3)-IId,AAC(6')-Ib-cr6,ANT(3'')-IIa,APH(3'')-Ib,APH(3')-Ia
+13 10 0.163043 AAC(3)-IId,AAC(6')-Ib-cr6,ANT(3'')-IIa,APH(3'')-Ib,APH(3')-Ia
+11 12 0.130435 APH(3'')-Ib,APH(6)-Id,NDM-1,mphE,msrE
+12 11 0.130435 APH(3'')-Ib,APH(6)-Id,NDM-1,mphE,msrE
+11 13 0.152778 AAC(6')-Ib-cr6,AAC(6')-Ib4,AAC(6')-Ib9,ANT(3'')-IIa,APH(3'')-Ib
+13 11 0.152778 AAC(6')-Ib-cr6,AAC(6')-Ib4,AAC(6')-Ib9,ANT(3'')-IIa,APH(3'')-Ib
+12 13 0.164062 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,qacEdelta1
+13 12 0.164062 AAC(3)-IId,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id,qacEdelta1
+14 15 0.050000 APH(3')-IIIa,SAT-4,tet(45)
+15 14 0.050000 APH(3')-IIIa,SAT-4,tet(45)
