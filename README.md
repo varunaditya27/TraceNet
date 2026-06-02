@@ -285,13 +285,22 @@ The real contribution is not novelty in the research sense. The contribution is 
 
 ```text
 TraceNet/
-├── data/                 # Raw and processed graph inputs
-├── preprocessing/        # Python scripts for parsing and graph construction
-├── src/                  # C++ implementations of graph algorithms
-├── experiments/         # Test runs, comparisons, metrics
-├── visuals/             # Graphviz output and plots
-├── docs/                # Report material, design notes, screenshots
-├── reports/              # Final lab report and presentation assets
+├── data/                  # Downloaded CARD data + generated graph files
+│   ├── card_r/            # CARD-R Prevalence archive (gitignored)
+│   ├── card_fasta/        # CARD Reference FASTA archive (gitignored)
+│   ├── hgt_graph.txt      # Generated: 16-node HGT species graph
+│   ├── arg_dag.txt        # Hand-authored: 10-node ARG dependency DAG
+│   ├── arg_sequences.fasta# Filtered ARG sequences for Boyer-Moore
+│   └── hospital_subgraph.txt # Reduced subgraph for branch-and-bound
+├── preprocessing/         # Python pipeline: CARD-R → hgt_graph.txt
+├── src/                   # C++ graph engine (one .h/.cpp per algorithm)
+├── results/               # Algorithm output files (gitignored)
+├── viz/                   # Graphviz DOT files + render_all.sh
+├── analysis/              # Python heatmap and comparison scripts
+├── tests/                 # C++ unit tests per algorithm
+├── experiments/           # Experiment harnesses and results
+├── docs/                  # dataset_reference.md + project specification
+├── reports/               # Final lab report and presentation materials
 └── README.md
 ```
 
@@ -399,35 +408,40 @@ git clone https://github.com/varunaditya27/TraceNet.git
 cd TraceNet
 ```
 
-### 2. Install dependencies
-
-If Python preprocessing is used:
+### 2. Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-If the graph engine is in C++:
+### 3. Download CARD datasets
 
 ```bash
-g++ -std=c++17 src/main.cpp -o tracenet
+mkdir -p data/card_r data/card_fasta
+wget https://card.mcmaster.ca/latest/variants -O data/card_variants.tar.bz2
+wget https://card.mcmaster.ca/latest/data    -O data/card_data.tar.bz2
+tar -xjf data/card_variants.tar.bz2 -C data/card_r/
+tar -xjf data/card_data.tar.bz2    -C data/card_fasta/
 ```
 
-### 3. Prepare input data
-
-Place curated input files in the `data/` directory and run preprocessing.
-
-### 4. Run the project
+### 4. Build graph and compile
 
 ```bash
-./tracenet
+python preprocessing/build_graph.py        # generates data/hgt_graph.txt (16 nodes, ~144 edges)
+make                                        # compiles all C++ sources into ./tracenet
 ```
 
-Or, if preprocessing is separate:
+Direct compilation without Make:
+```bash
+g++ -std=c++17 src/main.cpp src/graph.cpp src/bfs.cpp src/scc_kosaraju.cpp \
+    src/topo_sort.cpp src/boyer_moore.cpp src/dijkstra.cpp src/floyd_warshall.cpp \
+    src/greedy_contain.cpp src/bnb_contain.cpp -o tracenet
+```
+
+### 5. Run the project
 
 ```bash
-python preprocessing/build_graph.py
-./tracenet
+./tracenet data/hgt_graph.txt
 ```
 
 ---

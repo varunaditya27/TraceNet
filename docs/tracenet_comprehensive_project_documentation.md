@@ -376,27 +376,27 @@ This layer converts raw algorithm outputs into readable forms suitable for inter
 
 ---
 
-## Suggested Repository Structure
+## Repository Structure
 
 ```text
 TraceNet/
-├── data/                    # Raw and processed data files
-├── preprocessing/           # Python scripts for parsing and graph generation
-├── src/                     # C++ source files
-│   ├── graph/               # Graph classes and I/O
-│   ├── traversal/           # BFS, DFS, SCC
-│   ├── shortest_paths/      # Dijkstra, Floyd-Warshall
-│   ├── ordering/            # Topological sort
-│   ├── pattern_matching/    # Boyer-Moore / Horspool
-│   ├── optimization/        # Greedy containment, branch-and-bound
-│   └── main.cpp             # Main driver
-├── outputs/                 # Result files
-├── visuals/                 # Graphviz and plots
-├── docs/                    # Report assets and notes
+├── data/                    # Downloaded CARD data + generated graph files
+│   ├── card_r/              # CARD-R Prevalence archive contents (gitignored)
+│   ├── card_fasta/          # CARD Reference FASTA archive contents (gitignored)
+│   ├── hgt_graph.txt        # Generated 16-node HGT graph
+│   ├── arg_dag.txt          # Hand-authored ARG dependency DAG
+│   ├── arg_sequences.fasta  # Filtered ARG sequences for Boyer-Moore
+│   └── hospital_subgraph.txt# Reduced subgraph for branch-and-bound
+├── preprocessing/           # Python pipeline scripts
+├── src/                     # C++ source files (one .h/.cpp per algorithm)
+├── results/                 # Algorithm output files (gitignored)
+├── viz/                     # Graphviz DOT files and render_all.sh
+├── analysis/                # Python heatmap and comparison scripts
+├── tests/                   # C++ unit tests per algorithm
+├── experiments/             # Experiment harnesses
+├── docs/                    # dataset_reference.md, project specification
 └── README.md
 ```
-
-This structure is modular and makes the project look disciplined and maintainable.
 
 ---
 
@@ -404,25 +404,25 @@ This structure is modular and makes the project look disciplined and maintainabl
 
 ### Node set
 
-The node set should remain deliberately limited. A practical student version can use approximately 10 to 20 species. This is enough to make the graph non-trivial but small enough to validate manually.
+The node set is **16 confirmed species**, determined by EDA on the CARD-R Prevalence dataset. This is the complete set of species from the original plan that have a non-empty plasmid-borne ARG set in CARD. See `docs/dataset_reference.md` for the full species table with ARG counts.
 
-### Species selection strategy
-
-A balanced selection might include:
-
-- clinically dangerous pathogens,
-- enteric organisms,
-- environmental reservoirs,
-- livestock-associated organisms.
+Four species from the original plan were dropped after EDA confirmed they have no usable data:
+- *Streptomyces coelicolor* — not present in CARD-R at all
+- *Bacillus subtilis* — 0 ARGs with `NCBI Plasmid > 1`
+- *Streptococcus pneumoniae* — 0 ARGs with `NCBI Plasmid > 1`
+- *Clostridioides difficile* — 0 ARGs with `NCBI Plasmid > 1`
 
 ### ARG filtering strategy
 
-Only genes or gene families of clear interest should be included. Filtering criteria might include:
+Filter is applied to `data/card_r/card_prevalence.txt.gz` using these exact criteria:
 
-- plasmid origin,
-- prevalence above a threshold,
-- occurrence in multiple species,
-- known importance in antimicrobial resistance.
+```python
+(df["NCBI Plasmid"] > 1) & (df["Model Type"] == "protein homolog model")
+```
+
+`NCBI Plasmid` is a percentage column (0–100 scale) representing the fraction of sequenced genomes of that species where the ARG was found on a plasmid. A threshold of `> 1` captures genuinely mobile, conjugation-transferable ARGs.
+
+**Do not use `NCBI WGS`** as the filter — it includes intrinsic chromosomal genes (efflux regulators, outer membrane proteins) that are present in nearly every genome but are never horizontally transferred. This was confirmed by EDA: the top-ranked ARGs under a `NCBI WGS >= 5` filter for *K. pneumoniae* are `rsmA`, `CRP`, `H-NS`, `ArnT` — housekeeping genes, not resistance-transfer genes.
 
 ### Weight computation strategy
 

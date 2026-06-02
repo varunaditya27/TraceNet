@@ -193,7 +193,7 @@ The honest framing: TraceNet is a well-structured algorithmic application of a m
 
 ### 6.1 In scope
 
-- Construction of a weighted directed HGT graph with 20–25 bacterial species nodes from CARD-R prevalence data.
+- Construction of a weighted directed HGT graph with 16 bacterial species nodes from CARD-R prevalence data (confirmed by EDA).
 - Implementation in C++ of all eight core algorithms, with clean separation of concerns (one `.cpp` file per algorithm module).
 - Python preprocessing pipeline that downloads, parses, and transforms CARD-R data into the graph input format used by C++.
 - A secondary ARG dependency DAG for topological sort, hand-curated from literature.
@@ -298,28 +298,32 @@ where `τ = 1.0` for same-genus pairs, `τ = 0.7` for same-family, `τ = 0.5` fo
 
 **G = (V, E, w)**
 
-**Vertex set V** (target: 20–25 nodes):
+**Vertex set V** (confirmed: 16 nodes — verified by EDA on CARD-R dataset):
 
-| Category | Species | Role in graph |
-|---|---|---|
-| ESKAPE pathogens | *Enterococcus faecium* | Clinical target |
-| | *Staphylococcus aureus* | Clinical target |
-| | *Klebsiella pneumoniae* | Primary clinical target |
-| | *Acinetobacter baumannii* | Clinical target |
-| | *Pseudomonas aeruginosa* | Clinical target |
-| | *Enterobacter cloacae* | Clinical target |
-| Extended clinical | *Escherichia coli* | Bridge node (env → clinical) |
-| | *Salmonella enterica* | Bridge node |
-| | *Clostridioides difficile* | Clinical target |
-| | *Streptococcus pneumoniae* | Clinical target |
-| Livestock reservoirs | *E. coli* (livestock variant) | Environmental source |
-| | *Enterococcus faecalis* | Environmental source |
-| | *Campylobacter jejuni* | Environmental source |
-| Wastewater | *Acinetobacter pittii* | Bridge node |
-| | *Pseudomonas putida* | Bridge node |
-| Soil reservoirs | *Bacillus subtilis* | Environmental source |
-| | *Streptomyces coelicolor* | Ancestral source |
-| | *Actinobacter sp.* | Environmental source |
+| Category | Species | Plasmid ARGs | Role in graph |
+|---|---|---|---|
+| ESKAPE pathogens | *Klebsiella pneumoniae* | 46 | Primary clinical target |
+| | *Enterobacter cloacae* | 56 | Clinical target |
+| | *Pseudomonas aeruginosa* | 39 | Clinical target |
+| | *Enterococcus faecium* | 22 | Clinical target |
+| | *Staphylococcus aureus* | 13 | Clinical target |
+| | *Acinetobacter baumannii* | 16 | Clinical target |
+| Bridge nodes | *Escherichia coli* | 25 | Bridge (env → clinical) |
+| | *Salmonella enterica* | 46 | Bridge node |
+| | *Klebsiella oxytoca* | 43 | Bridge node |
+| | *Citrobacter freundii* | 39 | Bridge node |
+| | *Proteus mirabilis* | 60 | Bridge node |
+| | *Serratia marcescens* | 41 | Bridge node |
+| | *Acinetobacter pittii* | 14 | Bridge node (wastewater) |
+| | *Pseudomonas putida* | 25 | Bridge node (wastewater) |
+| Environmental reservoirs | *Enterococcus faecalis* | 26 | Source |
+| | *Campylobacter jejuni* | 7 | Source |
+
+**Dropped from original plan (confirmed 0 plasmid ARGs by EDA):**
+- *Clostridioides difficile* — 0 ARGs with `NCBI Plasmid > 1`
+- *Streptococcus pneumoniae* — 0 ARGs with `NCBI Plasmid > 1`
+- *Bacillus subtilis* — 0 ARGs with `NCBI Plasmid > 1`
+- *Streptomyces coelicolor* — not present in CARD-R database at all
 
 **Edge set E:**
 An edge (u → v, w) exists in E if:
@@ -335,12 +339,11 @@ Directionality is assigned based on:
 - Raw weight w(u→v) ∈ (0, 1] represents normalized transfer probability.
 - Dijkstra/Floyd-Warshall use **distance = −log(w)** so that high-probability edges become short distances. A weight of 0.9 → distance of 0.105 (easy path). A weight of 0.05 → distance of 2.996 (hard path).
 
-**Graph properties (expected):**
-- |V| = 20–25
-- |E| = 80–180 (after Jaccard threshold)
-- Sparse to moderately dense
-- Multiple SCCs of size 2–5, plus isolated nodes
-- Diameter approximately 4–6 hops (source to clinical target)
+**Graph properties (confirmed by EDA):**
+- |V| = 16
+- |E| = 144 directed edges (72 undirected pairs, all bidirectional with equal weight)
+- Jaccard range across edges: 0.10–0.71
+- All edges bidirectional (directionality from Ellabaan 2021 not required — Jaccard produces a symmetric similarity)
 
 ### 8.2 Secondary graph — ARG dependency DAG
 
@@ -394,17 +397,29 @@ This DAG has no cycles by construction. Topological sort produces a valid acquis
 ...
 ```
 
-Example:
+Example (reflecting confirmed 16-node graph):
 ```
-22
-147
-Bacillus_subtilis
-Streptomyces_coelicolor
-E_coli_livestock
-...
-0 2 0.312 blaTEM,tetM,sul1
-0 5 0.187 tetM
-2 8 0.441 blaNDM-1,blaCTX-M,aac6
+16
+144
+Acinetobacter_baumannii
+Acinetobacter_pittii
+Campylobacter_jejuni
+Citrobacter_freundii
+Enterobacter_cloacae
+Enterococcus_faecalis
+Enterococcus_faecium
+Escherichia_coli
+Klebsiella_oxytoca
+Klebsiella_pneumoniae
+Proteus_mirabilis
+Pseudomonas_aeruginosa
+Pseudomonas_putida
+Salmonella_enterica
+Serratia_marcescens
+Staphylococcus_aureus
+0 1 0.4286 APH(3'')-Ib,APH(3')-VIa,APH(6)-Id,OXA-58,sul1
+4 3 0.4180 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(6)-Id,BRP(MBL)
+9 4 0.3750 AAC(3)-IId,AAC(6')-Ib-cr6,APH(3'')-Ib,APH(3')-Ia,APH(6)-Id
 ...
 ```
 
@@ -417,12 +432,14 @@ E_coli_livestock
 **Primary: CARD-R Prevalence Data**
 
 - URL: `https://card.mcmaster.ca/latest/variants`
-- Format: `.tar.bz2` archive containing per-pathogen TSV files
-- Key files:
-  - `prevalence_<species>.tsv` — ARG prevalence per genome for each pathogen
-  - `aro_categories_index.tsv` — maps ARO IDs to human-readable ARG family names
-- Columns used: `ARO_name`, `Prevalence`, `Contig` (chromosome vs plasmid), `Pathogen`
-- Filter criteria: `Contig == "Plasmid"` AND `Prevalence > 0.05` (present in >5% of sequenced genomes)
+- Format: `.tar.bz2` archive — extract to `data/card_r/`
+- Key file: `card_prevalence.txt.gz` — single tab-separated file, 20,041 rows × 11 columns, covering 413 pathogens
+- Actual column names (verified by direct inspection): `ARO Accession`, `Name`, `Model ID`, `Model Type`, `Pathogen`, `NCBI Plasmid`, `NCBI WGS`, `NCBI Chromosome`, `NCBI Genomic Island`, `Criteria`, `ARO Categories`
+- `NCBI Plasmid` is a **percentage (0–100 scale)** — the fraction of sequenced genomes where the ARG was found on a plasmid
+- `Criteria` has only two values: `perfect` and `perfect_strict` — both are kept, no filtering on this column
+- Filter applied: `NCBI Plasmid > 1` AND `Model Type == "protein homolog model"`
+- Do NOT use `NCBI WGS` as the filter — it includes intrinsic chromosomal genes never transferred horizontally
+- There is no `prevalence_<species>.tsv` per-pathogen file structure — all pathogens are in the single `card_prevalence.txt.gz` file
 
 **Secondary (fallback and validation): Ellabaan 2021 Supplementary Data**
 
@@ -442,112 +459,101 @@ E_coli_livestock
 
 **File:** `preprocessing/build_graph.py`
 
+The pseudocode below reflects the correct implementation based on EDA findings. See `docs/dataset_reference.md` for the authoritative column reference.
+
 ```python
 """
 TraceNet preprocessing pipeline.
-Input:  CARD-R prevalence TSV files
-Output: hgt_graph.txt (adjacency list for C++ ingestion)
+Input:  data/card_r/card_prevalence.txt.gz  (single file, all pathogens)
+Output: data/hgt_graph.txt
 """
 
 import pandas as pd
-import numpy as np
-import os
 import math
-import json
 
-# ── Configuration ──────────────────────────────────────────────────────────────
+# ── Configuration (verified against actual CARD-R data) ───────────────────────
 
+# 16 confirmed species — 4 original candidates dropped (0 plasmid ARGs each)
 TARGET_SPECIES = [
-    "Enterococcus_faecium", "Staphylococcus_aureus", "Klebsiella_pneumoniae",
-    "Acinetobacter_baumannii", "Pseudomonas_aeruginosa", "Enterobacter_cloacae",
-    "Escherichia_coli", "Salmonella_enterica", "Clostridioides_difficile",
-    "Streptococcus_pneumoniae", "Enterococcus_faecalis", "Campylobacter_jejuni",
-    "Acinetobacter_pittii", "Pseudomonas_putida", "Bacillus_subtilis",
-    "Streptomyces_coelicolor", "Klebsiella_oxytoca", "Proteus_mirabilis",
-    "Serratia_marcescens", "Citrobacter_freundii"
+    "Klebsiella pneumoniae", "Enterobacter cloacae", "Pseudomonas aeruginosa",
+    "Enterococcus faecium", "Staphylococcus aureus", "Acinetobacter baumannii",
+    "Escherichia coli", "Salmonella enterica", "Klebsiella oxytoca",
+    "Citrobacter freundii", "Proteus mirabilis", "Serratia marcescens",
+    "Acinetobacter pittii", "Pseudomonas putida",
+    "Enterococcus faecalis", "Campylobacter jejuni"
 ]
 
-JACCARD_THRESHOLD = 0.10          # minimum ARG set overlap
-MIN_WEIGHT = 0.05                 # minimum taxonomic-adjusted weight
-PREVALENCE_CUTOFF = 0.05          # must appear in >5% of genomes
-DATA_DIR = "data/card_r/"
+JACCARD_THRESHOLD = 0.10   # minimum Jaccard before τ correction
+MIN_WEIGHT        = 0.05   # minimum w = Jaccard × τ to create an edge
+PLASMID_CUTOFF    = 1.0    # NCBI Plasmid column threshold (percentage, 0–100 scale)
 
-# Taxonomic penalty: penalty factor for edges crossing taxonomic distance
-# Gram-positive to Gram-negative = 0.5; same genus = 1.0
-GRAM_POSITIVE = {"Enterococcus_faecium", "Staphylococcus_aureus", 
-                 "Clostridioides_difficile", "Streptococcus_pneumoniae",
-                 "Enterococcus_faecalis", "Bacillus_subtilis"}
+# Gram-positive species — only these three have usable plasmid ARG data
+GRAM_POSITIVE = {"Enterococcus faecium", "Staphylococcus aureus", "Enterococcus faecalis"}
 
 def taxonomic_penalty(sp_a, sp_b):
-    """Return multiplier for cross-taxonomic transfer probability."""
-    a_gram_pos = sp_a in GRAM_POSITIVE
-    b_gram_pos = sp_b in GRAM_POSITIVE
-    if a_gram_pos != b_gram_pos:
-        return 0.5     # cross gram-stain barrier
-    genus_a = sp_a.split("_")[0]
-    genus_b = sp_b.split("_")[0]
-    if genus_a == genus_b:
-        return 1.0     # same genus
-    return 0.75        # same gram class, different genus
+    a_gp = sp_a in GRAM_POSITIVE
+    b_gp = sp_b in GRAM_POSITIVE
+    if a_gp != b_gp:
+        return 0.5   # cross gram-stain barrier
+    if sp_a.split()[0] == sp_b.split()[0]:
+        return 1.0   # same genus
+    return 0.75      # same gram class, different genus
 
-# ── Step 1: Load ARG sets from CARD-R TSVs ────────────────────────────────────
+# ── Step 1: Load single card_prevalence.txt.gz file ──────────────────────────
 
+df = pd.read_csv("data/card_r/card_prevalence.txt.gz", sep="\t", compression="gzip")
+
+# Correct filter: NCBI Plasmid > 1 (percentage) + protein homolog models only
+# Do NOT use: df["Contig"], df["ARO_name"], df["Prevalence"] — those columns do not exist
 species_args = {}
-
 for sp in TARGET_SPECIES:
-    path = os.path.join(DATA_DIR, f"{sp}.tsv")
-    if not os.path.exists(path):
-        print(f"[WARN] Missing: {path} — skipping")
-        continue
-    df = pd.read_csv(path, sep="\t")
-    plasmid_args = df[
-        (df["Contig"].str.strip() == "Plasmid") &
-        (df["Prevalence"].astype(float) >= PREVALENCE_CUTOFF)
+    sub = df[
+        (df["Pathogen"] == sp) &
+        (df["NCBI Plasmid"] > PLASMID_CUTOFF) &
+        (df["Model Type"] == "protein homolog model")
     ]
-    arg_set = set(plasmid_args["ARO_name"].dropna().tolist())
+    arg_set = set(sub["Name"].unique())
     if arg_set:
         species_args[sp] = arg_set
-        print(f"[OK] {sp}: {len(arg_set)} plasmid-borne ARGs")
-
-nodes = sorted(species_args.keys())
-node_index = {sp: i for i, sp in enumerate(nodes)}
+        print(f"[OK] {sp}: {len(arg_set)} plasmid ARGs")
+    else:
+        print(f"[WARN] {sp}: 0 plasmid ARGs — skipping")
 
 # ── Step 2: Compute Jaccard similarity and build edges ────────────────────────
 
+nodes = sorted(species_args.keys())
+node_index = {sp: i for i, sp in enumerate(nodes)}
 edges = []
 
 for i, sp_a in enumerate(nodes):
     for j, sp_b in enumerate(nodes):
         if i == j:
             continue
-        set_a = species_args[sp_a]
-        set_b = species_args[sp_b]
-        intersection = set_a & set_b
+        set_a, set_b = species_args[sp_a], species_args[sp_b]
         union = set_a | set_b
         if not union:
             continue
-        jaccard = len(intersection) / len(union)
+        jaccard = len(set_a & set_b) / len(union)
         if jaccard < JACCARD_THRESHOLD:
             continue
         tau = taxonomic_penalty(sp_a, sp_b)
-        adjusted_weight = round(jaccard * tau, 4)
-        if adjusted_weight < MIN_WEIGHT:
+        w = round(jaccard * tau, 4)
+        if w < MIN_WEIGHT:
             continue
-        shared_args = sorted(intersection)[:5]  # top 5 ARGs for edge label
-        edges.append((i, j, adjusted_weight, shared_args))
+        shared = sorted(set_a & set_b)[:5]
+        edges.append((i, j, w, shared))
 
-# ── Step 3: Write hgt_graph.txt ───────────────────────────────────────────────
+# ── Step 3: Write data/hgt_graph.txt ─────────────────────────────────────────
 
-with open("hgt_graph.txt", "w") as f:
-    f.write(f"{len(nodes)}\n")
-    f.write(f"{len(edges)}\n")
+with open("data/hgt_graph.txt", "w") as f:
+    f.write(f"{len(nodes)}\n{len(edges)}\n")
     for sp in nodes:
         f.write(f"{sp}\n")
     for src, tgt, w, args in edges:
         f.write(f"{src} {tgt} {w} {','.join(args)}\n")
 
-print(f"\nGraph written: {len(nodes)} nodes, {len(edges)} edges")
-print(f"Output: hgt_graph.txt")
+print(f"\nGraph: {len(nodes)} nodes, {len(edges)} edges → data/hgt_graph.txt")
+# Expected output: 16 nodes, ~144 directed edges
 ```
 
 ### 9.3 ARG dependency DAG file format
@@ -881,15 +887,15 @@ std::vector<int> reconstructPath(const std::vector<int>& parent, int target) {
 
 **Correctness condition:** Dijkstra requires non-negative edge weights. Since w > 0 for all edges, −log(w) > 0 for all edges. This condition is satisfied.
 
-**Demo output:**
+**Demo output** (illustrative — exact path determined by `build_graph.py` output):
 ```
 Most probable spread path for NDM-1:
-Streptomyces_coelicolor → Bacillus_subtilis → E_coli_livestock
-  → E_coli_wastewater → Klebsiella_pneumoniae
+Campylobacter_jejuni → Salmonella_enterica → Escherichia_coli
+  → Klebsiella_pneumoniae
 
-Path distance (log-probability): 3.247
-Equivalent probability: e^(-3.247) = 3.9% (probability of this exact multi-hop path)
+Path distance (log-probability): computed from -log(w) edge weights
 ```
+Note: *Streptomyces coelicolor* and *Bacillus subtilis* are not in the graph (confirmed absent from CARD-R). Actual shortest path will be determined by the generated `hgt_graph.txt`.
 
 **Visualization:** Highlighted Dijkstra path overlaid on the species graph in Graphviz, with edge weights labeled and the path highlighted in red.
 
@@ -936,7 +942,7 @@ void floydWarshall(std::vector<std::vector<double>>& dist, int n) {
 - Time: O(V³) — three nested loops over all nodes.
 - Space: O(V²) for the distance matrix.
 
-**With n = 22 nodes:** 22³ = 10,648 operations. This runs in microseconds. The O(V³) complexity is academically significant even though it is undetectable at this scale — it justifies why Floyd-Warshall is not used for large graphs (1000 nodes = 10^9 operations).
+**With n = 16 nodes:** 16³ = 4,096 operations. This runs in microseconds. The O(V³) complexity is academically significant even though it is undetectable at this scale — it justifies why Floyd-Warshall is not used for large graphs (1000 nodes = 10^9 operations).
 
 **Output format:** 22×22 matrix written as `vulnerability_matrix.csv`. Each cell [i][j] gives the minimum log-distance from species i to species j.
 
@@ -1172,12 +1178,15 @@ TraceNet/
 │   ├── validate_graph.py              ← Sanity checks (connectivity, weight range)
 │   └── requirements.txt              ← pandas, numpy, requests
 │
-├── data/                              ← Generated and curated data files
-│   ├── card_r/                        ← Downloaded CARD-R TSVs (gitignored, ~200MB)
-│   ├── hgt_graph.txt                  ← Final graph input (generated, committed)
-│   ├── arg_dag.txt                    ← ARG dependency DAG (hand-curated, committed)
-│   ├── arg_sequences.fasta            ← 6 reference ARG sequences (committed)
-│   └── hospital_subgraph.txt          ← Reduced subgraph for B&B (generated)
+├── data/                              ← Downloaded CARD data + generated graph files
+│   ├── card_r/                        ← CARD-R archive contents (gitignored, ~309MB)
+│   │   └── card_prevalence.txt.gz     ← Primary source: 20,041 rows × 11 cols
+│   ├── card_fasta/                    ← CARD Reference FASTA archive (gitignored)
+│   │   └── nucleotide_fasta_protein_homolog_model.fasta  ← 6,052 sequences
+│   ├── hgt_graph.txt                  ← Generated: 16 nodes, 144 edges (committed)
+│   ├── arg_dag.txt                    ← Hand-authored ARG dependency DAG (committed)
+│   ├── arg_sequences.fasta            ← Filtered ARG sequences for Boyer-Moore (committed)
+│   └── hospital_subgraph.txt          ← ~10-node subgraph for B&B (generated)
 │
 ├── src/                               ← C++ algorithm implementations
 │   ├── main.cpp                       ← Entry point, argument parsing, orchestration
@@ -1243,7 +1252,7 @@ Priority: This is the critical path. Everything else depends on `hgt_graph.txt` 
 
 Tasks:
 1. Download CARD-R variant archive from `card.mcmaster.ca/latest/variants`.
-2. Run `build_graph.py` and verify: 20+ nodes parsed, 80+ edges generated.
+2. Run `build_graph.py` and verify: 16 nodes parsed, ~144 edges generated.
 3. Hand-author `arg_dag.txt` with 10 ARG nodes and 8 dependency edges.
 4. Download and filter ARG FASTA from `card.mcmaster.ca/latest/data`.
 5. Run `validate_graph.py` to check: no negative weights, no isolated nodes in ESKAPE set, at least one source-to-K.pneumoniae path.
@@ -1410,7 +1419,7 @@ The demo must tell one coherent story. Every algorithm must be explained as an a
 "We verify that NDM-1 — the gene responsible for carbapenem resistance — actually exists in *K. pneumoniae*'s reference genome. Boyer-Moore locates the exact sequence in 12ms, finding 3 occurrences. This grounds our graph model in sequence-level evidence."
 
 **Step 6 — Dijkstra path**
-"The critical question: what is the most probable route by which NDM-1 would travel from soil to hospital? Dijkstra finds the minimum-distance path: *Streptomyces coelicolor* → *Bacillus subtilis* → *E. coli* (livestock) → *E. coli* (wastewater) → *K. pneumoniae*. This is not hypothetical — all four transfer events are documented in the literature."
+"The critical question: what is the most probable route by which resistance would travel from an environmental source to a hospital pathogen? Dijkstra finds the minimum-distance path through the graph. The actual path is determined by the generated edge weights — for example, via *Campylobacter jejuni* → *Salmonella enterica* → *Escherichia coli* → *Klebsiella pneumoniae*, tracing the resistance through enteric bacteria to the primary clinical target."
 
 **Step 7 — Floyd-Warshall matrix**
 "Floyd-Warshall computes distances between every pair simultaneously. Here is the vulnerability matrix. The darkest cells — shortest distances — show which species are most tightly connected to *K. pneumoniae*. These are the species where AMR surveillance should be concentrated."
@@ -1477,10 +1486,10 @@ The theoretical result is stated clearly in the report: the full multi-source ve
 | Greedy Min-Cut | Approximate containment | O(E log E + k(V+E)) | O(V + E) | Unit IV |
 | Branch-and-Bound | Exact containment (subgraph) | O(2^E) worst / practical: fast | O(E) | Unit V |
 
-**Key number:** With n = 22 nodes and e ≈ 147 edges:
-- BFS: ~169 ops
-- Floyd-Warshall: 22³ = 10,648 ops
-- B&B on 10-node subgraph: explored tree has << 10^6 nodes in practice
+**Key number:** With n = 16 nodes and e = 144 edges:
+- BFS: ~160 ops
+- Floyd-Warshall: 16³ = 4,096 ops
+- B&B on 10-node hospital subgraph: explored tree has << 10^6 nodes in practice
 
 All algorithms complete in under 1 second on any modern machine.
 
@@ -1535,8 +1544,8 @@ Jaccard similarity of ARG sets is a standard, reproducible measure of plasmid-bo
 **"Why not use max-flow for the min-cut instead of greedy and B&B?"**
 Max-flow (Edmonds-Karp, Dinic's) is the polynomial-time exact algorithm for s-t min-cut. It is not in the DAA syllabus. We chose greedy (Unit IV) and branch-and-bound (Unit V) because they are directly mapped to syllabus requirements and allow a pedagogically valuable comparison between approximate and exact methods. The comparison demonstrates the approximation gap — something max-flow alone would not.
 
-**"Why is your graph only 22 nodes? Real resistance networks have thousands of species."**
-With n = 22 nodes, all O(V³) algorithms run in microseconds. The focus of a DAA project is the correctness of the algorithm and the clarity of the analysis, not scale. A 1000-node graph would not change any algorithm's implementation; it would only make visualization and manual validation harder. The ESKAPE pathogens represent the clinically most significant targets, making 22 nodes a principled, not arbitrary, choice.
+**"Why is your graph only 16 nodes? Real resistance networks have thousands of species."**
+With n = 16 nodes, all O(V³) algorithms run in microseconds. The focus of a DAA project is the correctness of the algorithm and the clarity of the analysis, not scale. A 1000-node graph would not change any algorithm's implementation; it would only make visualization and manual validation harder. The 16 species were chosen because they are the complete set of ESKAPE pathogens and clinically significant bridge species that have confirmed plasmid-borne ARG data in CARD — making 16 nodes a data-driven, not arbitrary, choice.
 
 **"Can you trace through Kosaraju's algorithm on your graph?"**
 Yes. [Walk through: First DFS pass on G to compute finish order. Reverse the graph to G^T. Second DFS pass in reverse finish order, each new component is a new SCC.] For a specific 4-node subgraph, demonstrate both passes manually.
