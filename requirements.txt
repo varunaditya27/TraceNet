@@ -1,4 +1,2 @@
-# Add Python preprocessing dependencies here, example:
-# numpy
-# pandas
-# networkx
+pandas>=2.0
+numpy>=1.24

@@ -131,29 +131,34 @@ distance(u→v) = -log(w(u→v))
 ```
 High probability → low distance → preferred path. This transformation happens inside `dijkstra.cpp`, not in preprocessing. Floyd-Warshall uses the same -log(w) transformation.
 
-### Confirmed graph properties (from EDA)
+### Confirmed graph properties (from EDA + pipeline run)
 - `|V|` = **16 nodes** (confirmed — 4 originally planned species dropped, see below)
 - `|E|` = **144 directed edges** (72 undirected pairs × 2, all bidirectional with equal weight)
-- Jaccard range across edges: 0.10 – 0.71
-- Highest-weight pair: *E. faecium* ↔ *E. faecalis* (Jaccard=0.714, w=0.714)
-- Gram-positive species (τ=0.5 penalty vs Gram-negatives): *E. faecium*, *E. faecalis*, *S. aureus*
+- Jaccard range across edges: 0.10 – 0.71; w (Jaccard × τ) range: 0.050 – 0.714
+- Highest-weight pair: *E. faecium* ↔ *E. faecalis* (Jaccard=0.714, τ=1.0 same genus, w=0.714)
+- **Two connected components** (discovered by running the pipeline):
+  - **Component A (12 nodes):** all Gram-negative species — K. pneumoniae, E. cloacae, P. aeruginosa, A. baumannii, E. coli, S. enterica, K. oxytoca, C. freundii, P. mirabilis, S. marcescens, A. pittii, P. putida
+  - **Component B (4 nodes):** E. faecium, S. aureus, E. faecalis, C. jejuni
+  - Cross-Gram Jaccard × τ(0.5) values all fall below MIN_WEIGHT=0.05 — no edges exist between the components. This is biologically valid (ARG overlap across Gram boundaries is structurally insufficient at these thresholds).
+  - Each component is internally a **complete directed graph** (all within-component pairs above threshold).
+- Gram-positive species (τ=0.5 vs Gram-negatives): *E. faecium*, *E. faecalis*, *S. aureus*
 
 ### Species in the graph (16 confirmed)
 
 | Role | Species | Plasmid ARGs |
 |---|---|---|
 | ESKAPE clinical target | *Klebsiella pneumoniae* | 46 |
-| ESKAPE clinical target | *Enterobacter cloacae* | 56 |
-| ESKAPE clinical target | *Pseudomonas aeruginosa* | 39 |
+| ESKAPE clinical target | *Enterobacter cloacae* | 55 |
+| ESKAPE clinical target | *Pseudomonas aeruginosa* | 38 |
 | ESKAPE clinical target | *Enterococcus faecium* | 22 |
 | ESKAPE clinical target | *Staphylococcus aureus* | 13 |
-| ESKAPE clinical target | *Acinetobacter baumannii* | 16 |
-| Bridge node | *Escherichia coli* | 25 |
-| Bridge node | *Salmonella enterica* | 46 |
+| ESKAPE clinical target | *Acinetobacter baumannii* | 15 |
+| Bridge node | *Escherichia coli* | 24 |
+| Bridge node | *Salmonella enterica* | 45 |
 | Bridge node | *Klebsiella oxytoca* | 43 |
 | Bridge node | *Citrobacter freundii* | 39 |
-| Bridge node | *Proteus mirabilis* | 60 |
-| Bridge node | *Serratia marcescens* | 41 |
+| Bridge node | *Proteus mirabilis* | 59 |
+| Bridge node | *Serratia marcescens* | 40 |
 | Bridge node | *Acinetobacter pittii* | 14 |
 | Bridge node | *Pseudomonas putida* | 25 |
 | Environmental reservoir | *Enterococcus faecalis* | 26 |
