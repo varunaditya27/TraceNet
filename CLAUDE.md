@@ -46,29 +46,54 @@ src/
 
 ## Data Sources and Pipeline
 
-### Primary data sources
-- **CARD-R Prevalence**: `card.mcmaster.ca/latest/variants` — per-species TSV files with ARG prevalence stats. Filter: `Contig == "Plasmid"` AND `Prevalence > 0.05`. Store in `data/card_r/` (gitignored, ~200MB).
-- **Ellabaan 2021 Supplementary** (fallback/directionality): Nature Comms DOI `10.1038/s41467-021-22757-1` — provides explicit HGT directionality for ambiguous edges.
-- **CARD FASTA** (for Boyer-Moore): `card.mcmaster.ca/latest/data` — `nucleotide_fasta_protein_homolog_model.fasta`. Pre-filtered to 6 ARGs (NDM-1, CTX-M-15, mcr-1, vanA, tetM, blaTEM-1), stored as `data/arg_sequences.fasta`.
+> Full dataset documentation with verified schemas, filter rationale, complete Jaccard matrix, and ARG name mapping is in **`docs/dataset_reference.md`**. That file is the authoritative source. This section summarises the key decisions only.
+
+### Downloaded datasets (already on disk)
+- **`data/card_r/card_prevalence.txt.gz`** — CARD-R Prevalence (CARD v4.0.2). 20,041 rows × 11 columns. Primary source for graph construction.
+- **`data/card_fasta/nucleotide_fasta_protein_homolog_model.fasta`** — CARD Reference FASTA (CARD v4.0.1). 6,052 sequences, median 873 bp. Used for Boyer-Moore.
+
+### The correct filter for `build_graph.py`
+
+```python
+# Load HGT-relevant (mobile, plasmid-borne) ARGs for one species
+sub = df[
+    (df["Pathogen"] == species_name) &
+    (df["NCBI Plasmid"] > 1) &            # >1% of genomes carry it on a plasmid
+    (df["Model Type"] == "protein homolog model")
+]
+arg_set = set(sub["Name"].unique())
+```
+
+**Do NOT use `NCBI WGS >= 5`** — that filter picks up intrinsic chromosomal genes (`rsmA`, `CRP`, `H-NS`, `ArnT`) that are never horizontally transferred and would pollute the Jaccard scores.
+
+### Actual column names in `card_prevalence.txt.gz`
+
+The spec's assumed column names are **wrong**. Real names verified by `head`:
+
+| Spec assumed | Actual column | Semantics |
+|---|---|---|
+| `"Contig"` | does not exist | — |
+| `"ARO_name"` | `"Name"` | allele-level gene name (e.g., `TEM-1`, `NDM-6`) |
+| `"Prevalence"` (float 0–1) | `"NCBI Plasmid"`, `"NCBI WGS"` | percentage 0–100, not a proportion |
+| — | `"Criteria"` | `"perfect"` or `"perfect_strict"` only — keep both |
 
 ### Python preprocessing — `preprocessing/build_graph.py`
 
-Key constants:
+Key constants (updated from EDA):
 ```python
-JACCARD_THRESHOLD = 0.10      # minimum ARG set overlap for an edge to exist
-MIN_WEIGHT = 0.05             # minimum taxonomic-adjusted weight after penalty
-PREVALENCE_CUTOFF = 0.05      # ARG must appear in >5% of genomes
+JACCARD_THRESHOLD = 0.10      # minimum Jaccard before τ correction
+MIN_WEIGHT        = 0.05      # minimum w = Jaccard × τ
+PLASMID_CUTOFF    = 1.0       # NCBI Plasmid must exceed this (percentage, 0–100 scale)
+MODEL_TYPE        = "protein homolog model"
 ```
 
 Pipeline steps:
-1. Load per-species ARG sets from CARD-R TSVs.
-2. Compute pairwise Jaccard similarity: `J(A,B) = |ARGs(A) ∩ ARGs(B)| / |ARGs(A) ∪ ARGs(B)|`
-3. Apply **taxonomic correction factor** `τ`:
-   - Same genus: `τ = 1.0`
-   - Same gram class, different genus: `τ = 0.75`
-   - Cross gram-stain (Gram+ ↔ Gram−): `τ = 0.5`
-4. Adjusted weight: `w(A→B) = J(A,B) × τ(A,B)` — skip edge if below thresholds.
-5. Write `data/hgt_graph.txt`.
+1. Load `data/card_r/card_prevalence.txt.gz` with `pd.read_csv(..., sep="\t", compression="gzip")`.
+2. For each species, filter rows: `NCBI Plasmid > 1` AND `Model Type == "protein homolog model"`. Build `arg_set = set(df["Name"])`.
+3. Compute pairwise Jaccard: `J(A,B) = |ARGs(A) ∩ ARGs(B)| / |ARGs(A) ∪ ARGs(B)|`
+4. Apply taxonomic correction `τ` (same genus=1.0, same Gram class=0.75, cross Gram=0.5).
+5. Skip edge if `J < 0.10` or `J × τ < 0.05`.
+6. Write `data/hgt_graph.txt` (bidirectional edges, equal weight both directions).
 
 ### Key data files
 
@@ -76,9 +101,10 @@ Pipeline steps:
 |---|---|---|
 | `data/hgt_graph.txt` | `build_graph.py` | Main graph input for C++ engine |
 | `data/arg_dag.txt` | Hand-authored | ARG dependency DAG for topological sort |
-| `data/arg_sequences.fasta` | `download_fasta.py` | 6 reference ARG sequences for Boyer-Moore |
-| `data/hospital_subgraph.txt` | Generated | Reduced ~10-node subgraph for B&B |
-| `data/card_r/` | Downloaded | Raw CARD-R TSVs — **gitignored** |
+| `data/arg_sequences.fasta` | Filtered from CARD FASTA | Target ARG sequences for Boyer-Moore |
+| `data/hospital_subgraph.txt` | `build_graph.py` | Reduced ~10-node subgraph for B&B |
+| `data/card_r/` | Downloaded | CARD-R archive — **gitignored** |
+| `data/card_fasta/` | Downloaded | CARD reference data — **gitignored** |
 
 ---
 
@@ -105,24 +131,43 @@ distance(u→v) = -log(w(u→v))
 ```
 High probability → low distance → preferred path. This transformation happens inside `dijkstra.cpp`, not in preprocessing. Floyd-Warshall uses the same -log(w) transformation.
 
-### Expected graph properties
-- `|V|` = 20–25 nodes, `|E|` = 80–180 edges
-- Diameter ~4–6 hops from environmental source to clinical target
-- Multiple SCCs of size 2–5; most singleton SCCs (recipients only)
+### Confirmed graph properties (from EDA)
+- `|V|` = **16 nodes** (confirmed — 4 originally planned species dropped, see below)
+- `|E|` = **144 directed edges** (72 undirected pairs × 2, all bidirectional with equal weight)
+- Jaccard range across edges: 0.10 – 0.71
+- Highest-weight pair: *E. faecium* ↔ *E. faecalis* (Jaccard=0.714, w=0.714)
+- Gram-positive species (τ=0.5 penalty vs Gram-negatives): *E. faecium*, *E. faecalis*, *S. aureus*
 
-### Species in the graph
+### Species in the graph (16 confirmed)
 
-| Role | Species examples |
-|---|---|
-| ESKAPE clinical targets | *K. pneumoniae*, *A. baumannii*, *P. aeruginosa*, *E. cloacae*, *E. faecium*, *S. aureus* |
-| Extended clinical | *E. coli*, *S. enterica*, *C. difficile*, *S. pneumoniae* |
-| Livestock reservoirs (source) | *E. coli* (livestock variant), *E. faecalis*, *C. jejuni* |
-| Wastewater bridges | *A. pittii*, *P. putida* |
-| Soil reservoirs (source) | *B. subtilis*, *S. coelicolor*, *Actinobacter sp.* |
+| Role | Species | Plasmid ARGs |
+|---|---|---|
+| ESKAPE clinical target | *Klebsiella pneumoniae* | 46 |
+| ESKAPE clinical target | *Enterobacter cloacae* | 56 |
+| ESKAPE clinical target | *Pseudomonas aeruginosa* | 39 |
+| ESKAPE clinical target | *Enterococcus faecium* | 22 |
+| ESKAPE clinical target | *Staphylococcus aureus* | 13 |
+| ESKAPE clinical target | *Acinetobacter baumannii* | 16 |
+| Bridge node | *Escherichia coli* | 25 |
+| Bridge node | *Salmonella enterica* | 46 |
+| Bridge node | *Klebsiella oxytoca* | 43 |
+| Bridge node | *Citrobacter freundii* | 39 |
+| Bridge node | *Proteus mirabilis* | 60 |
+| Bridge node | *Serratia marcescens* | 41 |
+| Bridge node | *Acinetobacter pittii* | 14 |
+| Bridge node | *Pseudomonas putida* | 25 |
+| Environmental reservoir | *Enterococcus faecalis* | 26 |
+| Environmental reservoir | *Campylobacter jejuni* | 7 |
+
+**Species dropped from original spec (confirmed by EDA):**
+- *Streptomyces coelicolor* — not in CARD-R database at all
+- *Bacillus subtilis* — 0 ARGs with `NCBI Plasmid > 1`
+- *Streptococcus pneumoniae* — 0 plasmid ARGs
+- *Clostridioides difficile* — 0 plasmid ARGs
 
 ### ARG dependency DAG — `data/arg_dag.txt`
 
-10 ARG nodes, 8 hand-curated dependency edges:
+10 ARG nodes, 8 hand-curated dependency edges. Node names use informal family notation (not CARD allele names — see `docs/dataset_reference.md` §9 for mapping):
 ```
 tetM     → blaTEM        sul1     → blaTEM
 blaTEM   → blaSHV        blaSHV   → blaCTX-M
@@ -283,8 +328,10 @@ pytest tests/
 - `main.cpp` owns CLI argument parsing and algorithm dispatch; no algorithm logic lives there.
 - Edge weights in the file are raw probabilities `w ∈ (0,1]`. The `-log(w)` distance conversion happens **inside `dijkstra.cpp` and `floyd_warshall.cpp`**, not in preprocessing.
 - Prefer clarity over micro-optimization — every algorithm must be explainable step-by-step in a viva.
-- B&B runs only on `hospital_subgraph.txt` (~10 nodes). Never attempt B&B on the full 22-node graph.
+- B&B runs only on `hospital_subgraph.txt` (~10 nodes). Never attempt B&B on the full 16-node graph.
 - The ARG dependency DAG has no cycles by construction. Kahn's algorithm should assert this — if output size < `|A|`, a cycle exists and the DAG input is invalid.
+- The CARD `Name` column uses allele-level names (`TEM-1`, `NDM-6`). For Jaccard overlap, group by family using `str.startswith("TEM-")` etc. See `docs/dataset_reference.md` §9 for the complete mapping.
+- To validate `build_graph.py` output: check generated edge weights against the pre-computed Jaccard matrix in `docs/dataset_reference.md` §7. Weights should match within floating-point rounding.
 
 ## Modeling Assumptions
 
