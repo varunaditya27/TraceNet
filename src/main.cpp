@@ -1,26 +1,75 @@
-// main.cpp
-//
-// CLI entry point for the TraceNet C++ algorithm engine.
-//
-// Usage:
-//   ./tracenet data/hgt_graph.txt [command]
-//
-// Commands:
-//   bfs       — BFS reachability from K. pneumoniae (node 0)
-//   scc       — Kosaraju strongly connected components
-//   topo      — Kahn's topological sort on ARG DAG (data/arg_dag.txt)
-//   bm        — Boyer-Moore pattern search on data/arg_sequences.fasta
-//   dijkstra  — Dijkstra shortest paths from K. pneumoniae
-//   floyd     — Floyd-Warshall all-pairs vulnerability matrix
-//   greedy    — Greedy edge-removal containment (full graph)
-//   bnb       — Branch-and-bound containment (hospital subgraph)
-//   all       — Run all algorithms in sequence
-//
-// Implementation notes:
-//   - Parse argv[1] as the graph file path; argv[2] as the command (default: "all")
-//   - Load the HGT graph via Graph::load(argv[1])
-//   - Load the ARG DAG via Graph::load("data/arg_dag.txt", /*dag=*/true) for "topo"
-//   - Load hospital subgraph via Graph::load("data/hospital_subgraph.txt") for "bnb"
-//   - Dispatch to the appropriate algorithm function and print results to stdout
-//   - Write output files to results/ and DOT files to viz/ via utils.h helpers
-//   - Print timing for each algorithm using the Timer utility
+#include "bfs.h"
+#include "bnb_contain.h"
+#include "boyer_moore.h"
+#include "dfs.h"
+#include "dijkstra.h"
+#include "floyd_warshall.h"
+#include "graph.h"
+#include "greedy_contain.h"
+#include "scc_kosaraju.h"
+#include "topo_sort.h"
+
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <graph-file>\n";
+        return 1;
+    }
+
+    Graph graph;
+    if (!graph.loadFromFile(argv[1])) {
+        return 1;
+    }
+    if (graph.V == 0) {
+        std::cerr << "Error: graph has no nodes.\n";
+        return 1;
+    }
+
+    graph.printGraph();
+    const std::vector<int> bfsOrder = bfs(graph, 0);
+    dfs(graph, 0);
+    kosarajuSCC(graph);
+
+    Graph dag;
+    if (dag.loadFromFile("data/arg_dag.txt")) {
+        topologicalSort(dag);
+    } else {
+        std::cerr << "Warning: skipping topological sort because data/arg_dag.txt "
+                     "could not be loaded.\n";
+    }
+
+    std::vector<int> parent;
+    dijkstra(graph, 0, parent);
+    if (bfsOrder.size() > 1) {
+        printDijkstraPath(graph, 0, bfsOrder.back(), parent);
+    }
+    floydWarshall(graph);
+    greedyContainment(graph, 3);
+    branchAndBoundContainment(graph, 0, 2);
+
+    std::string text = readFastaFile("data/arg_sequences.fasta");
+    std::string pattern;
+    if (text.empty()) {
+        text = "ACGTACGTGACGTTACGTACGT";
+        pattern = "ACGT";
+        std::cout << "\nBoyer-Moore demo using sample DNA text.\n";
+    } else {
+        pattern = text.substr(0, std::min<std::size_t>(20, text.size()));
+        std::cout << "\nBoyer-Moore demo using data/arg_sequences.fasta.\n";
+    }
+    const std::vector<int> matches = boyerMooreSearch(text, pattern);
+    std::cout << "  Pattern: " << pattern << "\n  Match positions:";
+    for (int position : matches) {
+        std::cout << ' ' << position;
+    }
+    if (matches.empty()) {
+        std::cout << " none";
+    }
+    std::cout << '\n';
+
+    return 0;
+}

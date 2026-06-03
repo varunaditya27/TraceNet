@@ -1,17 +1,50 @@
-// floyd_warshall.cpp
-//
-// Implementation of Floyd-Warshall declared in floyd_warshall.h.
-//
-// Implementation notes:
-//   - Call g.build_matrix() first; g.dist_mat[i][j] = -log(w) for direct edges,
-//     0 for diagonal, INF for absent edges.
-//   - Triple loop: for k in 0..n: for i in 0..n: for j in 0..n:
-//       if dist[i][k] + dist[k][j] < dist[i][j]: relax
-//   - Skip relaxation when dist[i][k] == INF to avoid inf + inf arithmetic issues.
-//   - vulnerability_scores: for each node tgt, compute mean of dist[src][tgt]
-//     over all src != tgt where dist[src][tgt] < INF.
-//     A lower score = more reachable from many sources = more vulnerable.
-//   - The two components (Gram-negative and Gram-positive) will show INF distances
-//     between them — this is expected and should be reported clearly.
-//   - export_fw_csv: write results/vulnerability_matrix.csv with node names as
-//     row/column headers and rounded distances (3 decimal places, "INF" for infinity).
+#include "floyd_warshall.h"
+
+#include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+
+std::vector<std::vector<double>> floydWarshall(const Graph& g) {
+    const double inf = std::numeric_limits<double>::infinity();
+    std::vector<std::vector<double>> dist(g.V, std::vector<double>(g.V, inf));
+    for (int i = 0; i < g.V; ++i) {
+        dist[i][i] = 0.0;
+        for (const Edge& edge : g.adj[i]) {
+            dist[i][edge.to] = std::min(dist[i][edge.to], -std::log(edge.weight));
+        }
+    }
+
+    for (int k = 0; k < g.V; ++k) {
+        for (int i = 0; i < g.V; ++i) {
+            if (dist[i][k] == inf) {
+                continue;
+            }
+            for (int j = 0; j < g.V; ++j) {
+                if (dist[k][j] != inf && dist[i][k] + dist[k][j] < dist[i][j]) {
+                    dist[i][j] = dist[i][k] + dist[k][j];
+                }
+            }
+        }
+    }
+
+    std::cout << "\nFloyd-Warshall all-pairs -log(probability) distance matrix:\n";
+    std::cout << std::setw(8) << "";
+    for (int j = 0; j < g.V; ++j) {
+        std::cout << std::setw(8) << j;
+    }
+    std::cout << '\n';
+    for (int i = 0; i < g.V; ++i) {
+        std::cout << std::setw(8) << i;
+        for (int j = 0; j < g.V; ++j) {
+            if (dist[i][j] == inf) {
+                std::cout << std::setw(8) << "INF";
+            } else {
+                std::cout << std::setw(8) << std::fixed << std::setprecision(2) << dist[i][j];
+            }
+        }
+        std::cout << '\n';
+    }
+    return dist;
+}

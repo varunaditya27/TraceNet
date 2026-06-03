@@ -1,17 +1,33 @@
-// greedy_contain.cpp
-//
-// Implementation of greedy containment declared in greedy_contain.h.
-//
-// Implementation notes:
-//   - Collect all directed edges (weight, src, tgt) into a vector; sort descending
-//     by weight using std::sort with a lambda comparator.
-//   - For each edge in sorted order: remove it permanently via Graph::remove_edge(u,v);
-//     run BFS to check if any source can still reach any target;
-//     if disconnected → break and return removed edges.
-//   - Use the Graph::reachable(src, tgt) helper for BFS checks (or implement
-//     a local multi-source BFS that stops at the first target reached).
-//   - Expected: removes approximately 141 of 144 edges on the full graph,
-//     demonstrating why this greedy is impractical for real containment decisions.
-//   - Write results to results/greedy_containment.txt listing each removed edge
-//     with its weight and the cumulative removal count.
-//   - Emit viz/containment.dot with removed edges marked in red.
+#include "greedy_contain.h"
+
+#include <algorithm>
+#include <iostream>
+
+std::vector<std::tuple<int, int, double, std::string>> greedyContainment(const Graph& g, int k) {
+    std::vector<std::tuple<int, int, double, std::string>> edges;
+    for (int u = 0; u < g.V; ++u) {
+        for (const Edge& edge : g.adj[u]) {
+            edges.emplace_back(u, edge.to, edge.weight, edge.label);
+        }
+    }
+    std::sort(edges.begin(), edges.end(), [](const auto& a, const auto& b) {
+        return std::get<2>(a) > std::get<2>(b);
+    });
+
+    if (k < 0) {
+        k = 0;
+    }
+    if (static_cast<std::size_t>(k) < edges.size()) {
+        edges.resize(k);
+    }
+
+    std::cout << "\nGreedy containment: top " << edges.size() << " high-risk edges to remove:\n";
+    for (const auto& [u, v, weight, label] : edges) {
+        std::cout << "  " << g.names[u] << " -> " << g.names[v] << "  weight=" << weight;
+        if (!label.empty()) {
+            std::cout << "  label=" << label;
+        }
+        std::cout << '\n';
+    }
+    return edges;
+}

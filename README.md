@@ -433,9 +433,10 @@ make                                        # compiles all C++ sources into ./tr
 
 Direct compilation without Make:
 ```bash
-g++ -std=c++17 src/main.cpp src/graph.cpp src/bfs.cpp src/scc_kosaraju.cpp \
-    src/topo_sort.cpp src/boyer_moore.cpp src/dijkstra.cpp src/floyd_warshall.cpp \
-    src/greedy_contain.cpp src/bnb_contain.cpp -o tracenet
+g++ -std=c++17 -Wall -Wextra src/main.cpp src/graph.cpp src/utils.cpp src/bfs.cpp \
+    src/dfs.cpp src/scc_kosaraju.cpp src/topo_sort.cpp src/boyer_moore.cpp \
+    src/dijkstra.cpp src/floyd_warshall.cpp src/greedy_contain.cpp \
+    src/bnb_contain.cpp -o tracenet
 ```
 
 ### 5. Run the project

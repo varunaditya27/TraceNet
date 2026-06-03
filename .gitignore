@@ -3,6 +3,8 @@ build/
 *.o
 *.exe
 *.out
+tracenet
+tracenet_tests
 
 # Python
 __pycache__/

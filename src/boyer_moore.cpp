@@ -1,19 +1,56 @@
-// boyer_moore.cpp
-//
-// Implementation of Boyer-Moore search declared in boyer_moore.h.
-//
-// Implementation notes:
-//   - bad_char_table: map each character → its last occurrence index in pattern.
-//     Characters not in pattern map to -1 (shift = j + 1).
-//   - boyer_moore loop: scan right-to-left within the pattern window.
-//     On mismatch at position j: shift = max(1, j - bad_char[text[s+j]]).
-//     On full match (j < 0): record position s, then shift by 1.
-//   - Count ALL character comparisons (including the final mismatch comparison).
-//   - naive_search: O(nm) left-to-right for comparison baseline.
-//   - load_fasta_sequence: read arg_sequences.fasta, find header line matching
-//     dag_name (e.g., "blaNDM1"), return the sequence string.
-//   - Demo setup: pattern = first 30 characters of NDM-1 sequence;
-//     text = NDM-1 sequence concatenated with itself.
-//     Expected matches: 2 (at positions 0 and len(seq)).
-//   - Write results to results/bm_search.txt showing match positions and
-//     comparison counts. Include speedup ratio naive/BM.
+#include "boyer_moore.h"
+
+#include <algorithm>
+#include <array>
+#include <fstream>
+std::vector<int> boyerMooreSearch(const std::string& text, const std::string& pattern) {
+    std::vector<int> matches;
+    if (pattern.empty() || pattern.size() > text.size()) {
+        return matches;
+    }
+
+    std::array<int, 256> last;
+    last.fill(-1);
+    for (std::size_t i = 0; i < pattern.size(); ++i) {
+        last[static_cast<unsigned char>(pattern[i])] = static_cast<int>(i);
+    }
+
+    std::size_t shift = 0;
+    while (shift + pattern.size() <= text.size()) {
+        int j = static_cast<int>(pattern.size()) - 1;
+        while (j >= 0 && pattern[j] == text[shift + j]) {
+            --j;
+        }
+        if (j < 0) {
+            matches.push_back(static_cast<int>(shift));
+            shift += 1;
+        } else {
+            const unsigned char mismatch = static_cast<unsigned char>(text[shift + j]);
+            shift += static_cast<std::size_t>(std::max(1, j - last[mismatch]));
+        }
+    }
+    return matches;
+}
+
+std::string readFastaFile(const std::string& filename) {
+    std::ifstream input(filename);
+    if (!input) {
+        return {};
+    }
+
+    std::string sequence;
+    std::string line;
+    while (std::getline(input, line)) {
+        if (line.empty()) {
+            continue;
+        }
+        if (line.front() == '>') {
+            if (!sequence.empty()) {
+                break;
+            }
+            continue;
+        }
+        sequence += line;
+    }
+    return sequence;
+}

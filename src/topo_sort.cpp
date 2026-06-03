@@ -1,15 +1,46 @@
-// topo_sort.cpp
-//
-// Implementation of Kahn's topological sort declared in topo_sort.h.
-//
-// Implementation notes:
-//   - Compute in-degree array by iterating over all edges in dag.adj
-//   - Initialise queue with all nodes where in_degree == 0
-//     (expected: tetM=0, sul1=1, aac6Ib=4, vanA=9 — nodes with no prerequisites)
-//   - Process queue: pop node, append to order[], decrement in-degree of neighbours,
-//     push neighbours with in-degree 0
-//   - After loop: if order.size() < dag.n, a cycle was introduced — print error
-//   - Expected topological order (one valid answer):
-//     tetM → sul1 → blaTEM → blaSHV → aac6Ib → blaCTXM → blaOXA48 → blaNDM1 → mcr1
-//     vanA appears somewhere (isolated node, may appear at any position)
-//   - Write results to results/topo_order.txt with one name per line
+#include "topo_sort.h"
+
+#include <iostream>
+#include <queue>
+
+std::vector<int> topologicalSort(const Graph& g) {
+    std::vector<int> indegree(g.V, 0);
+    for (const auto& edges : g.adj) {
+        for (const Edge& edge : edges) {
+            ++indegree[edge.to];
+        }
+    }
+
+    std::queue<int> pending;
+    for (int u = 0; u < g.V; ++u) {
+        if (indegree[u] == 0) {
+            pending.push(u);
+        }
+    }
+
+    std::vector<int> order;
+    while (!pending.empty()) {
+        int u = pending.front();
+        pending.pop();
+        order.push_back(u);
+        for (const Edge& edge : g.adj[u]) {
+            if (--indegree[edge.to] == 0) {
+                pending.push(edge.to);
+            }
+        }
+    }
+
+    std::cout << "\nTopological sort:\n";
+    if (static_cast<int>(order.size()) != g.V) {
+        std::cout << "  Warning: graph contains a cycle; topological sort is only valid for DAGs.\n";
+    } else {
+        for (std::size_t i = 0; i < order.size(); ++i) {
+            if (i > 0) {
+                std::cout << " -> ";
+            }
+            std::cout << g.names[order[i]];
+        }
+        std::cout << '\n';
+    }
+    return order;
+}
