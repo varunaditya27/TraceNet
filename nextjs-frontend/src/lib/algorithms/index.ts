@@ -6,6 +6,8 @@ import { topoModule } from './topo'
 import { boyerMooreModule } from './boyer-moore'
 import { dijkstraModule } from './dijkstra'
 import { floydModule } from './floyd'
+import { greedyModule } from './greedy'
+import { bnbModule } from './bnb'
 
 export interface StepDef {
   label: string
@@ -26,4 +28,6 @@ export const ALGORITHM_MODULES: Record<string, AlgorithmModule> = {
   boyer_moore: boyerMooreModule,
   dijkstra: dijkstraModule,
   floyd_warshall: floydModule,
+  greedy_contain: greedyModule,
+  bnb_contain: bnbModule,
 }
