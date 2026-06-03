@@ -456,7 +456,7 @@ def main():
         prob = math.exp(-dijk_dist[tgt]) if dijk_dist[tgt] < INF else 0.0
         eskape_paths[str(tgt)] = {
             "path": path,
-            "dist": round(dijk_dist[tgt], 4),
+            "dist": round(dijk_dist[tgt], 4) if dijk_dist[tgt] < INF else None,
             "probability": round(prob, 4),
             "target_name": names[tgt]
         }
@@ -614,7 +614,7 @@ def main():
 
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
-        json.dump(output, f, indent=2)
+        json.dump(output, f, indent=2, allow_nan=False)
 
     print(f"\nWritten → {OUTPUT_PATH}")
     print(f"  BFS reachable      : {output['algorithms']['bfs']['reachable']}/{n}")

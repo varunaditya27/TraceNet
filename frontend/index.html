@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TraceNet — Antibiotic Resistance Spread Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Sticky graph panel: 52vh ── -->
+  <div id="graph-panel">
+    <div id="graph-header">
+      <div id="header-left">
+        <div id="tracenet-logo">TraceNet</div>
+        <div id="chapter-meta">
+          <span id="chapter-tag">Introduction</span>
+          <span id="chapter-title-display">The Resistance Network</span>
+        </div>
+      </div>
+      <div id="legend">
+        <div class="legend-group">
+          <div class="legend-item"><span class="ldot eskape"></span><span>ESKAPE pathogen</span></div>
+          <div class="legend-item"><span class="ldot bridge"></span><span>Bridge species</span></div>
+          <div class="legend-item"><span class="ldot env"></span><span>Environmental reservoir</span></div>
+        </div>
+        <div class="legend-divider"></div>
+        <div class="legend-group">
+          <div class="legend-item"><span class="gram-marker neg"></span><span>Gram −</span></div>
+          <div class="legend-item"><span class="gram-marker pos"></span><span>Gram +</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="svg-container">
+      <svg id="graph-svg" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <!-- default arrow -->
+          <marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+            <path d="M0,0.5 L0,5.5 L6,3 z" fill="rgba(0,0,0,0.25)"/>
+          </marker>
+          <!-- gold active arrow -->
+          <marker id="arr-gold" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+            <path d="M0,0.5 L0,5.5 L6,3 z" fill="#c4950a"/>
+          </marker>
+          <!-- red removed arrow -->
+          <marker id="arr-red" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+            <path d="M0,0.5 L0,5.5 L6,3 z" fill="#cc3333"/>
+          </marker>
+          <!-- crimson path arrow -->
+          <marker id="arr-crimson" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+            <path d="M0,0.5 L0,5.5 L6,3 z" fill="#8b1a1a"/>
+          </marker>
+          <!-- glow filters -->
+          <filter id="glow-sm" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="glow-lg" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <g id="edges-layer"></g>
+        <g id="nodes-layer"></g>
+        <g id="labels-layer"></g>
+      </svg>
+
+      <!-- Inset panel for DAG, BM strip, matrix, B&B -->
+      <div id="inset-panel" class="hidden">
+        <div id="inset-header">
+          <span id="inset-title">ARG Dependency DAG</span>
+          <button id="inset-close" aria-label="Close inset">×</button>
+        </div>
+        <div id="inset-body"></div>
+      </div>
+    </div>
+
+    <!-- Progress bar: which chapter is active -->
+    <div id="progress-bar">
+      <div class="prog-dot active" data-ch="intro" title="Introduction"></div>
+      <div class="prog-dot" data-ch="ch1" title="BFS"></div>
+      <div class="prog-dot" data-ch="ch2" title="SCC"></div>
+      <div class="prog-dot" data-ch="ch3" title="Topo Sort"></div>
+      <div class="prog-dot" data-ch="ch4" title="Boyer-Moore"></div>
+      <div class="prog-dot" data-ch="ch5" title="Dijkstra"></div>
+      <div class="prog-dot" data-ch="ch6" title="Floyd-Warshall"></div>
+      <div class="prog-dot" data-ch="ch7" title="Greedy Contain"></div>
+      <div class="prog-dot" data-ch="ch8" title="B&amp;B"></div>
+      <div class="prog-dot" data-ch="outro" title="Summary"></div>
+    </div>
+  </div>
+
+  <!-- ── Scrollable narrative: 48vh ── -->
+  <div id="narrative">
+
+    <section class="chapter" data-chapter="intro">
+      <div class="chapter-inner">
+        <div class="chap-num">TRACENET · B.E. ISE IV · RVCE</div>
+        <h1 class="chap-head">Resistance Moves Like a Graph</h1>
+        <p class="chap-body">
+          Bacteria spread antibiotic resistance horizontally — via plasmids that jump between
+          species during conjugation. This network models <strong>16 bacterial species</strong>
+          as nodes and <strong>144 directed transfer pathways</strong> as weighted edges,
+          with weights derived from Jaccard similarity of plasmid-borne ARG repertoires
+          corrected by taxonomic distance.
+        </p>
+        <p class="chap-body">
+          Eight classical DAA algorithms are applied in sequence to trace spread, detect
+          community structure, find high-risk paths, and determine optimal containment.
+        </p>
+        <div class="scroll-cue">↓ Scroll to begin the analysis</div>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="ch1">
+      <div class="chapter-inner">
+        <div class="chap-num">01 / 08 · Unit II</div>
+        <h2 class="chap-head">Breadth-First Search</h2>
+        <h3 class="chap-sub">Mapping the Spread</h3>
+        <p class="chap-body">
+          Starting from <em>Klebsiella pneumoniae</em> (46 plasmid ARGs), BFS discovers
+          every species reachable via horizontal gene transfer. The algorithm uses a FIFO
+          queue to process nodes layer by layer, assigning hop-distances that define the
+          spread frontier. <strong>O(V + E).</strong>
+        </p>
+        <p class="chap-body">
+          Watch the propagation wave. Four species receive no color — they belong to a
+          structurally separate Gram-positive cluster that is unreachable from any
+          Gram-negative starting point.
+        </p>
+        <div class="result-panel">
+          <div class="result-row">
+            <div class="rstat"><span class="rval">12</span><span class="rlbl">species reachable</span></div>
+            <div class="rstat"><span class="rval">4</span><span class="rlbl">isolated (Gram+ cluster)</span></div>
+            <div class="rstat"><span class="rval">1</span><span class="rlbl">max hop distance</span></div>
+          </div>
+          <p class="result-note">
+            Cross-Gram Jaccard × τ(0.5) falls below MIN_WEIGHT=0.05 for all pairs.
+            No edges exist between Gram-negative and Gram-positive clusters — biologically
+            consistent with ARG transfer barriers across membrane structure boundaries.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="ch2">
+      <div class="chapter-inner">
+        <div class="chap-num">02 / 08 · Unit II</div>
+        <h2 class="chap-head">Kosaraju's Algorithm</h2>
+        <h3 class="chap-sub">Finding Resistance Bubbles</h3>
+        <p class="chap-body">
+          A Strongly Connected Component is a maximal group where resistance can circulate
+          indefinitely — every species can reach every other. Kosaraju's algorithm finds
+          all SCCs in two DFS passes: one on the original graph (computing finish order),
+          one on the transposed graph (identifying components). <strong>O(V + E).</strong>
+        </p>
+        <p class="chap-body">
+          Two bubbles emerge. Within each, resistance recirculates without escape. The
+          structural isolation is a direct consequence of the Gram classification threshold.
+        </p>
+        <div class="result-panel">
+          <div class="result-row">
+            <div class="rstat"><span class="rval">2</span><span class="rlbl">strongly connected components</span></div>
+            <div class="rstat"><span class="rval">12</span><span class="rlbl">nodes in Component A (Gram−)</span></div>
+            <div class="rstat"><span class="rval">4</span><span class="rlbl">nodes in Component B (Gram+)</span></div>
+          </div>
+          <p class="result-note">
+            Component A: K. pneumoniae, E. cloacae, P. aeruginosa, A. baumannii, E. coli,
+            S. enterica, K. oxytoca, C. freundii, P. mirabilis, S. marcescens, A. pittii, P. putida.
+            Component B: E. faecium, S. aureus, E. faecalis, C. jejuni.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="ch3">
+      <div class="chapter-inner">
+        <div class="chap-num">03 / 08 · Unit II</div>
+        <h2 class="chap-head">Kahn's Algorithm</h2>
+        <h3 class="chap-sub">Gene Acquisition Order</h3>
+        <p class="chap-body">
+          Resistance genes have clinical co-occurrence dependencies: isolates carrying
+          CTX-M typically already carry TEM. Kahn's topological sort finds a valid
+          ordering on the 10-node ARG dependency DAG by repeatedly selecting
+          zero-in-degree nodes. <strong>O(V + E).</strong>
+        </p>
+        <p class="chap-body">
+          The inset shows the ARG DAG. Kahn's algorithm peels nodes in valid topological
+          order — the sequence a pathogen would realistically accumulate these resistance
+          families. A cycle detection check asserts DAG validity.
+        </p>
+        <div class="result-panel">
+          <div class="result-row">
+            <div class="rstat"><span class="rval">10</span><span class="rlbl">ARG families ordered</span></div>
+            <div class="rstat"><span class="rval">8</span><span class="rlbl">dependency edges</span></div>
+            <div class="rstat"><span class="rval">0</span><span class="rlbl">cycles detected</span></div>
+          </div>
+          <p class="result-note">
+            Order: tetM → sul1 → blaTEM → blaSHV → blaCTX-M → blaOXA-48 → blaNDM-1 → mcr-1.
+            The DAG is valid. Kahn's output size equals |V|, confirming acyclicity.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="ch4">
+      <div class="chapter-inner">
+        <div class="chap-num">04 / 08 · Unit III</div>
+        <h2 class="chap-head">Boyer-Moore</h2>
+        <h3 class="chap-sub">Scanning for NDM-1</h3>
+        <p class="chap-body">
+          Given a reference ARG sequence from CARD v4.0.1, Boyer-Moore scans for a
+          30bp query primer using the bad-character heuristic — scanning the pattern
+          right-to-left, then jumping forward based on the mismatch character's last
+          occurrence. <strong>O(n/m) average</strong> on a 4-character DNA alphabet.
+        </p>
+        <p class="chap-body">
+          Each upward jump in the inset animation is a position the naive algorithm
+          would have checked but Boyer-Moore skips entirely. The advantage compounds
+          with longer sequences.
+        </p>
+        <div class="result-panel">
+          <div class="result-row">
+            <div class="rstat"><span class="rval">951</span><span class="rlbl">Boyer-Moore comparisons</span></div>
+            <div class="rstat"><span class="rval">2 119</span><span class="rlbl">Naive comparisons</span></div>
+            <div class="rstat"><span class="rval">2.23×</span><span class="rlbl">speedup</span></div>
+          </div>
+          <p class="result-note">
+            Pattern: 30bp NDM-1 primer. Text: 813bp sequence (doubled for guaranteed match demonstration).
+            Boyer-Moore found 2 matches. Speedup grows with longer sequences and shorter patterns.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="ch5">
+      <div class="chapter-inner">
+        <div class="chap-num">05 / 08 · Unit IV</div>
+        <h2 class="chap-head">Dijkstra's Algorithm</h2>
+        <h3 class="chap-sub">Highest-Risk Spread Path</h3>
+        <p class="chap-body">
+          Edge weights are transfer probabilities <em>w ∈ (0,1]</em>. Dijkstra converts
+          them internally to <code>−log(w)</code> distances — high probability becomes
+          short distance, making the shortest path the most probable route. A min-heap
+          priority queue drives optimal expansion order. <strong>O((V+E) log V).</strong>
+        </p>
+        <p class="chap-body">
+          The golden path traces the highest-probability route from <em>K. pneumoniae</em>.
+          The highest-risk pair in the entire network is then revealed — within the
+          Gram-positive cluster, where same-genus taxonomy maximises transfer probability.
+        </p>
+        <div class="result-panel">
+          <div class="result-row">
+            <div class="rstat"><span class="rval">71.4%</span><span class="rlbl">peak transfer probability</span></div>
+            <div class="rstat"><span class="rval">E. faecium → E. faecalis</span><span class="rlbl">highest-risk pair</span></div>
+          </div>
+          <p class="result-note">
+            Jaccard = 0.714, τ = 1.0 (same genus <em>Enterococcus</em>). The two Enterococcus
+            species share the most ARG families of any pair in the network — a direct,
+            high-probability horizontal gene transfer channel.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="ch6">
+      <div class="chapter-inner">
+        <div class="chap-num">06 / 08 · Unit IV</div>
+        <h2 class="chap-head">Floyd-Warshall</h2>
+        <h3 class="chap-sub">The Vulnerability Matrix</h3>
+        <p class="chap-body">
+          Floyd-Warshall computes all-pairs shortest −log(w) distances in three nested
+          loops, exposing every species' vulnerability to every potential source simultaneously.
+          <strong>O(V³).</strong> For V = 16: 4,096 operations — negligible.
+        </p>
+        <p class="chap-body">
+          The heatmap encodes spread distance: red cells are close (high probability path),
+          blue cells are distant, black cells unreachable. The species with the lowest
+          average incoming distance is the most systemically vulnerable.
+        </p>
+        <div class="result-panel">
+          <div class="result-row">
+            <div class="rstat"><span class="rval">K. pneumoniae</span><span class="rlbl">most vulnerable species</span></div>
+            <div class="rstat"><span class="rval">4 096</span><span class="rlbl">distance operations</span></div>
+          </div>
+          <p class="result-note">
+            K. pneumoniae receives from the most species with the shortest average −log distance.
+            Its high ARG count (46 plasmid genes) makes it simultaneously the densest spreader
+            and the most accessible target in the Gram-negative cluster.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="ch7">
+      <div class="chapter-inner">
+        <div class="chap-num">07 / 08 · Unit IV</div>
+        <h2 class="chap-head">Greedy Containment</h2>
+        <h3 class="chap-sub">Approximate Intervention</h3>
+        <p class="chap-body">
+          The containment problem — remove minimum edges to isolate environmental reservoirs
+          from ESKAPE targets — is NP-hard in the multi-source case (reducible from Minimum
+          Vertex Cover). A greedy heuristic provides a polynomial approximation: remove
+          edges in descending weight order until sources cannot reach targets.
+        </p>
+        <p class="chap-body">
+          The greedy algorithm is globally blind — it removes high-weight edges throughout
+          the network even when they are not on any source→target path. This produces a
+          valid but highly suboptimal solution, demonstrated by comparison with B&B.
+        </p>
+        <div class="result-panel">
+          <div class="result-row">
+            <div class="rstat"><span class="rval">39</span><span class="rlbl">edges greedy removed (hospital subgraph)</span></div>
+            <div class="rstat"><span class="rval">NP-hard</span><span class="rlbl">exact multi-source problem</span></div>
+          </div>
+          <p class="result-note">
+            On the hospital subgraph (10 nodes): greedy removed 39 of 42 edges before the
+            containment condition was satisfied. Most removed edges were irrelevant — they
+            lay entirely within the Gram-negative cluster, disconnected from the actual threat path.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="ch8">
+      <div class="chapter-inner">
+        <div class="chap-num">08 / 08 · Unit V</div>
+        <h2 class="chap-head">Branch and Bound</h2>
+        <h3 class="chap-sub">Exact Containment</h3>
+        <p class="chap-body">
+          On the 10-node hospital subgraph, Branch and Bound performs exhaustive search
+          with intelligent pruning. It initialises an upper bound from the greedy solution,
+          then prunes any branch where the removed set size already equals or exceeds
+          the best known cost. <strong>O(2<sup>E</sup>) worst case — fast in practice.</strong>
+        </p>
+        <p class="chap-body">
+          The result is the provably optimal minimum cut: the four direct edges from
+          environmental sources to ESKAPE targets. Every path from source to target passes
+          through exactly these four edges — they are the minimum s-t cut.
+        </p>
+        <div class="result-panel">
+          <div class="result-row">
+            <div class="rstat"><span class="rval">4</span><span class="rlbl">edges in optimal cut (B&amp;B)</span></div>
+            <div class="rstat"><span class="rval">39</span><span class="rlbl">edges greedy removed</span></div>
+            <div class="rstat"><span class="rval">9.75×</span><span class="rlbl">improvement over greedy</span></div>
+          </div>
+          <p class="result-note">
+            Optimal cut: E. faecalis→E. faecium, E. faecalis→S. aureus, C. jejuni→E. faecium,
+            C. jejuni→S. aureus. These four direct source→target edges constitute the minimal
+            intervention. B&B proves optimality; greedy cannot.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="outro">
+      <div class="chapter-inner">
+        <div class="chap-num">SUMMARY</div>
+        <h2 class="chap-head">Eight Algorithms, One Network</h2>
+        <p class="chap-body">
+          TraceNet demonstrates that antibiotic resistance spread is fundamentally a
+          graph problem — and that the classical techniques across DAA Units II–V are
+          precisely the tools needed to analyze it rigorously.
+        </p>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="unit-badge">Unit II</div>
+            <div class="unit-algos">BFS &middot; Kosaraju SCC &middot; Kahn's Topo Sort</div>
+          </div>
+          <div class="summary-card">
+            <div class="unit-badge">Unit III</div>
+            <div class="unit-algos">Boyer-Moore String Matching</div>
+          </div>
+          <div class="summary-card">
+            <div class="unit-badge">Unit IV</div>
+            <div class="unit-algos">Dijkstra &middot; Floyd-Warshall &middot; Greedy Containment</div>
+          </div>
+          <div class="summary-card">
+            <div class="unit-badge">Unit V</div>
+            <div class="unit-algos">Branch and Bound &middot; NP-hardness Reduction</div>
+          </div>
+        </div>
+        <p class="chap-body muted-text">
+          B.E. Information Science Engineering · Semester IV · RVCE Bengaluru
+          <br>Design and Analysis of Algorithms — Course Project 2026
+        </p>
+      </div>
+    </section>
+
+  </div><!-- /narrative -->
+</div><!-- /app -->
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"
+  integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i"
+  crossorigin="anonymous"></script>
+<script type="module" src="main.js"></script>
+</body>
+</html>

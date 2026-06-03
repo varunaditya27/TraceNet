@@ -2241,13 +2241,13 @@
         },
         "3": {
           "path": [],
-          "dist": Infinity,
+          "dist": null,
           "probability": 0.0,
           "target_name": "Enterococcus faecium"
         },
         "4": {
           "path": [],
-          "dist": Infinity,
+          "dist": null,
           "probability": 0.0,
           "target_name": "Staphylococcus aureus"
         },
