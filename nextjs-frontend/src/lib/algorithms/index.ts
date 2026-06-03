@@ -4,6 +4,8 @@ import { bfsModule } from './bfs'
 import { sccModule } from './scc'
 import { topoModule } from './topo'
 import { boyerMooreModule } from './boyer-moore'
+import { dijkstraModule } from './dijkstra'
+import { floydModule } from './floyd'
 
 export interface StepDef {
   label: string
@@ -22,4 +24,6 @@ export const ALGORITHM_MODULES: Record<string, AlgorithmModule> = {
   scc: sccModule,
   topo_sort: topoModule,
   boyer_moore: boyerMooreModule,
+  dijkstra: dijkstraModule,
+  floyd_warshall: floydModule,
 }
