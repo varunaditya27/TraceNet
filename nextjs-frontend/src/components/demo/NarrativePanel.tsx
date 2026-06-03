@@ -1,6 +1,7 @@
 'use client'
 import { useDemoStore } from '@/store/demo-store'
 import { ALGORITHM_META } from '@/lib/constants'
+import { ALGORITHM_MODULES } from '@/lib/algorithms'
 import { StatCard } from '@/components/ui/StatCard'
 import { Badge } from '@/components/ui/Badge'
 import { AlgorithmControls } from './AlgorithmControls'
@@ -71,9 +72,12 @@ const PLACEHOLDER_STEPS: Record<string, { label: string; detail: string }[]> = {
 
 export function NarrativePanel() {
   const { selectedAlgo, currentStep } = useDemoStore()
+  const graphData = useDemoStore(s => s.graphData)
   const meta = ALGORITHM_META[selectedAlgo]
-  const steps = PLACEHOLDER_STEPS[selectedAlgo] ?? []
-  const results = PLACEHOLDER_RESULTS[selectedAlgo] ?? []
+  const steps = ALGORITHM_MODULES[selectedAlgo]?.steps ?? (PLACEHOLDER_STEPS[selectedAlgo] ?? [])
+  const results = graphData && ALGORITHM_MODULES[selectedAlgo]
+    ? ALGORITHM_MODULES[selectedAlgo].getResults(graphData)
+    : (PLACEHOLDER_RESULTS[selectedAlgo] ?? [])
 
   return (
     <aside style={{
