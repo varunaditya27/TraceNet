@@ -1,5 +1,7 @@
 import type { GraphData } from '@/lib/graph-data'
 import type * as d3 from 'd3'
+import { bfsModule } from './bfs'
+import { sccModule } from './scc'
 
 export interface StepDef {
   label: string
@@ -13,4 +15,7 @@ export interface AlgorithmModule {
   getResults: (data: GraphData) => { label: string; value: string }[]
 }
 
-export const ALGORITHM_MODULES: Record<string, AlgorithmModule> = {}
+export const ALGORITHM_MODULES: Record<string, AlgorithmModule> = {
+  bfs: bfsModule,
+  scc: sccModule,
+}

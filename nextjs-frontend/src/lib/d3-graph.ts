@@ -168,14 +168,14 @@ export function resetGraph(svg: SVGSel, data: GraphData): void {
   svg.selectAll('.algo-overlay, .halo, .inset-panel, .hop-label, .step-label, .cross-mark').remove()
 }
 
-export function setNodeColor(svg: SVGSel, nodeId: number, color: string, opacity = 1, duration = TIMINGS.nodeState): void {
+export function setNodeColor(svg: SVGSel, nodeId: number, color: string, opacity = 1, duration: number = TIMINGS.nodeState): void {
   svg.select(`#n-${nodeId}`)
     .transition().duration(duration)
     .attr('fill', color)
     .attr('opacity', opacity)
 }
 
-export function setNodeOpacity(svg: SVGSel, nodeId: number, opacity: number, duration = TIMINGS.nodeFade): void {
+export function setNodeOpacity(svg: SVGSel, nodeId: number, opacity: number, duration: number = TIMINGS.nodeFade): void {
   svg.select(`#n-${nodeId}`)
     .transition().duration(duration)
     .attr('opacity', opacity)
@@ -183,8 +183,8 @@ export function setNodeOpacity(svg: SVGSel, nodeId: number, opacity: number, dur
 
 export function setEdgeActive(
   svg: SVGSel, src: number, tgt: number,
-  color = COLORS.amberMid, width = 2, markerId = 'arrow-active',
-  duration = TIMINGS.nodeState
+  color: string = COLORS.amberMid, width = 2, markerId = 'arrow-active',
+  duration: number = TIMINGS.nodeState
 ): void {
   svg.select(`#e-${src}-${tgt}`)
     .transition().duration(duration)
@@ -194,13 +194,13 @@ export function setEdgeActive(
     .attr('marker-end', `url(#${markerId})`)
 }
 
-export function dimAllNodes(svg: SVGSel, opacity = 0.2, duration = TIMINGS.nodeFade): void {
+export function dimAllNodes(svg: SVGSel, opacity = 0.2, duration: number = TIMINGS.nodeFade): void {
   svg.selectAll('.node-circle')
     .transition().duration(duration)
     .attr('opacity', opacity)
 }
 
-export function dimAllEdges(svg: SVGSel, opacity = 0.05, duration = TIMINGS.nodeFade): void {
+export function dimAllEdges(svg: SVGSel, opacity = 0.05, duration: number = TIMINGS.nodeFade): void {
   svg.selectAll('.edge-line')
     .transition().duration(duration)
     .attr('opacity', opacity)
@@ -220,7 +220,7 @@ export function highlightNode(svg: SVGSel, nodeId: number, color: string, scale 
 
 export function addTextLabel(
   svg: SVGSel, x: number, y: number, text: string,
-  color = COLORS.amberMid, fontSize = '11px', className = 'step-label'
+  color: string = COLORS.amberMid, fontSize = '11px', className = 'step-label'
 ): void {
   svg.select('.g-annotations')
     .append('text')
