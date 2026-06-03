@@ -1,26 +1,132 @@
 @import "tailwindcss";
 
+@theme {
+  --color-surface-0: #0d1117;
+  --color-surface-1: #161b22;
+  --color-surface-2: #21262d;
+  --color-surface-3: #30363d;
+
+  --color-amber-dim: #92610a;
+  --color-amber-mid: #d4a017;
+  --color-amber-bright: #f0b429;
+
+  --color-text-1: #e6edf3;
+  --color-text-2: #8b949e;
+  --color-text-3: #484f58;
+
+  --color-risk-high: #f85149;
+  --color-risk-low: #3fb950;
+
+  --font-display: var(--font-dm-serif, Georgia, serif);
+  --font-sans: var(--font-space-grotesk, system-ui, sans-serif);
+  --font-body: var(--font-lora, Georgia, serif);
+  --font-mono: var(--font-jetbrains-mono, monospace);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --surface-0: #0d1117;
+  --surface-1: #161b22;
+  --surface-2: #21262d;
+  --surface-3: #30363d;
+
+  --amber-dim: #92610a;
+  --amber-mid: #d4a017;
+  --amber-bright: #f0b429;
+  --amber-glow: rgba(212, 160, 23, 0.12);
+
+  --text-1: #e6edf3;
+  --text-2: #8b949e;
+  --text-3: #484f58;
+
+  --risk-high: #f85149;
+  --risk-low: #3fb950;
+  --node-bridge: #8b949e;
+  --scc-violet: #a78bfa;
+  --bfs-teal: #22d3ee;
+  --path-gold: #f0b429;
+
+  --font-display: var(--font-dm-serif, Georgia, serif);
+  --font-sans: var(--font-space-grotesk, system-ui, sans-serif);
+  --font-body: var(--font-lora, Georgia, serif);
+  --font-mono: var(--font-jetbrains-mono, monospace);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--surface-0);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface-1); }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--amber-dim); }
+
+/* Dot-grid texture for graph canvas */
+.dot-grid {
+  background-image: radial-gradient(circle, var(--node-bridge) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.04;
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Decorative node field for hero/cta backgrounds */
+.node-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Drift animation for background nodes */
+@keyframes drift-a {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  33% { transform: translateY(-12px) translateX(6px); }
+  66% { transform: translateY(8px) translateX(-4px); }
+}
+@keyframes drift-b {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(10px) translateX(-8px); }
+  75% { transform: translateY(-6px) translateX(5px); }
+}
+@keyframes drift-c {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  40% { transform: translateY(-8px) translateX(-6px); }
+  80% { transform: translateY(12px) translateX(3px); }
+}
+
+.drift-a { animation: drift-a var(--drift-dur, 9s) ease-in-out infinite; }
+.drift-b { animation: drift-b var(--drift-dur, 11s) ease-in-out infinite; }
+.drift-c { animation: drift-c var(--drift-dur, 7s) ease-in-out infinite; }
+
+/* Scroll cue animation */
+@keyframes scroll-cue {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 0.9; transform: translateY(8px); }
+}
+.scroll-cue { animation: scroll-cue 2s ease-in-out infinite; }
+
+/* Pulse animation for nodes */
+@keyframes node-pulse {
+  0%, 100% { r: var(--base-r, 10); opacity: 1; }
+  50% { r: calc(var(--base-r, 10) * 1.3); opacity: 0.7; }
 }
