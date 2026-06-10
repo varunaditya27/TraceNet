@@ -1,80 +1,102 @@
 'use client'
+
 import { useDemoStore } from '@/store/demo-store'
 
-export function AlgorithmControls() {
-  const { currentStep, totalSteps, isPlaying, prevStep, nextStep, togglePlay } = useDemoStore()
+const SPEEDS = [0.5, 1, 1.5, 2]
 
-  const btnStyle = (disabled: boolean): React.CSSProperties => ({
-    width: '36px',
-    height: '36px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: 'none',
-    border: '1px solid var(--surface-3)',
-    borderRadius: '4px',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    color: disabled ? 'var(--text-3)' : 'var(--amber-mid)',
-    fontSize: '14px',
-    fontFamily: 'var(--font-sans)',
-    transition: 'color 150ms, border-color 150ms, background 150ms',
-    flexShrink: 0,
-  })
+export function AlgorithmControls() {
+  const {
+    currentStep,
+    selectedAlgo,
+    totalSteps,
+    isPlaying,
+    speed,
+    executionMode,
+    prevStep,
+    nextStep,
+    togglePlay,
+    restart,
+    setSpeed,
+    setExecutionMode,
+    jumpToPhase,
+    setStep,
+  } = useDemoStore()
+  const atStart = currentStep === 0
+  const atEnd = totalSteps === 0 || currentStep >= totalSteps - 1
+  const progress = totalSteps > 1 ? (currentStep / (totalSteps - 1)) * 100 : 0
+  const nodeCount = useDemoStore.getState().graphData?.meta.n_nodes ?? 16
+  const phaseSize = nodeCount * nodeCount
+  const currentK = Math.floor(currentStep / phaseSize)
+  const currentI = Math.floor((currentStep % phaseSize) / nodeCount)
+  const currentJ = currentStep % nodeCount
+  const jumpToTriple = (k: number, i: number, j: number) => {
+    setStep(k * phaseSize + i * nodeCount + j)
+  }
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '8px',
-      padding: '12px 16px',
-      borderTop: '1px solid var(--surface-3)',
-    }}>
-      <button
-        style={btnStyle(currentStep === 0)}
-        disabled={currentStep === 0}
-        onClick={prevStep}
-        onMouseEnter={e => { if (currentStep > 0) { e.currentTarget.style.color = 'var(--amber-bright)'; e.currentTarget.style.borderColor = 'var(--amber-dim)' } }}
-        onMouseLeave={e => { e.currentTarget.style.color = currentStep === 0 ? 'var(--text-3)' : 'var(--amber-mid)'; e.currentTarget.style.borderColor = 'var(--surface-3)' }}
-        title="Previous step"
-      >
-        ←
-      </button>
-
-      <button
-        style={{
-          ...btnStyle(false),
-          width: '48px',
-          background: isPlaying ? 'var(--amber-glow)' : 'none',
-          borderColor: isPlaying ? 'var(--amber-dim)' : 'var(--surface-3)',
-          color: 'var(--amber-mid)',
-          fontSize: '16px',
-        }}
-        onClick={togglePlay}
-        onMouseEnter={e => { e.currentTarget.style.color = 'var(--amber-bright)'; e.currentTarget.style.borderColor = 'var(--amber-mid)' }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'var(--amber-mid)'; e.currentTarget.style.borderColor = isPlaying ? 'var(--amber-dim)' : 'var(--surface-3)' }}
-        title={isPlaying ? 'Pause' : 'Play'}
-      >
-        {isPlaying ? '⏸' : '▶'}
-      </button>
-
-      <button
-        style={btnStyle(currentStep >= totalSteps - 1)}
-        disabled={currentStep >= totalSteps - 1}
-        onClick={nextStep}
-        onMouseEnter={e => { if (currentStep < totalSteps - 1) { e.currentTarget.style.color = 'var(--amber-bright)'; e.currentTarget.style.borderColor = 'var(--amber-dim)' } }}
-        onMouseLeave={e => { e.currentTarget.style.color = currentStep >= totalSteps - 1 ? 'var(--text-3)' : 'var(--amber-mid)'; e.currentTarget.style.borderColor = 'var(--surface-3)' }}
-        title="Next step"
-      >
-        →
-      </button>
-
-      <span style={{
-        fontFamily: 'var(--font-mono)',
-        fontSize: '11px',
-        color: 'var(--text-3)',
-        marginLeft: '8px',
-      }}>
-        {totalSteps > 0 ? `${currentStep + 1} / ${totalSteps}` : '— / —'}
-      </span>
+    <div className="demo-controls" aria-label="Algorithm playback controls">
+      <div className="demo-progress-row">
+        <span>Step {totalSteps ? currentStep + 1 : 0} of {totalSteps}</span>
+        <span>{Math.round(progress)}% complete</span>
+      </div>
+      <div className="demo-progress" aria-hidden="true">
+        <span style={{ width: `${progress}%` }} />
+      </div>
+      <div className="demo-control-row">
+        <button className="control-button" onClick={prevStep} disabled={atStart} title="Previous step">
+          <span aria-hidden="true">←</span><span>Previous</span>
+        </button>
+        <button className="control-button control-primary" onClick={togglePlay} disabled={totalSteps < 2 || (atEnd && !isPlaying)}>
+          <span aria-hidden="true">{isPlaying ? 'Ⅱ' : '▶'}</span><span>{isPlaying ? 'Pause' : 'Play'}</span>
+        </button>
+        <button className="control-button" onClick={nextStep} disabled={atEnd} title="Next step">
+          <span>Next</span><span aria-hidden="true">→</span>
+        </button>
+        <button className="control-button control-quiet" onClick={restart} disabled={atStart && !isPlaying}>
+          <span aria-hidden="true">↺</span><span>Restart</span>
+        </button>
+        <label className="speed-control">
+          <span>Speed</span>
+          <select value={speed} onChange={event => setSpeed(Number(event.target.value))}>
+            {SPEEDS.map(value => <option key={value} value={value}>{value}x</option>)}
+          </select>
+        </label>
+      </div>
+      <div className="execution-mode-row">
+        <label>
+          <span>Mode</span>
+          <select value={executionMode} onChange={event => setExecutionMode(event.target.value as 'guided' | 'full')}>
+            <option value="guided">Guided mode</option>
+            <option value="full">Full execution</option>
+          </select>
+        </label>
+        {executionMode === 'full' && (
+          <>
+            {selectedAlgo === 'floyd_warshall' && (
+              <>
+                <button onClick={() => jumpToPhase(-1)} disabled={atStart}>Previous k phase</button>
+                <button onClick={() => jumpToPhase(1)} disabled={atEnd}>Next k phase</button>
+                <label className="triple-jump">
+                  <span>Jump k/i/j</span>
+                  <input aria-label="Intermediate k" type="number" min={0} max={nodeCount - 1} value={currentK} onChange={event => jumpToTriple(Number(event.target.value), currentI, currentJ)} />
+                  <input aria-label="Source i" type="number" min={0} max={nodeCount - 1} value={currentI} onChange={event => jumpToTriple(currentK, Number(event.target.value), currentJ)} />
+                  <input aria-label="Destination j" type="number" min={0} max={nodeCount - 1} value={currentJ} onChange={event => jumpToTriple(currentK, currentI, Number(event.target.value))} />
+                </label>
+              </>
+            )}
+            <label>
+              <span>Jump to operation</span>
+              <input
+                type="number"
+                min={1}
+                max={totalSteps}
+                value={currentStep + 1}
+                onChange={event => setStep(Number(event.target.value) - 1)}
+              />
+            </label>
+          </>
+        )}
+      </div>
     </div>
   )
 }

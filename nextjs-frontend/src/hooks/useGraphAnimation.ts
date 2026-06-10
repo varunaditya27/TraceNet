@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { useDemoStore } from '@/store/demo-store'
 
 export function useGraphAnimation() {
-  const { isPlaying, currentStep, totalSteps, togglePlay } = useDemoStore()
+  const { isPlaying, currentStep, totalSteps, speed, togglePlay } = useDemoStore()
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
@@ -28,10 +28,10 @@ export function useGraphAnimation() {
       } else {
         useDemoStore.getState().nextStep()
       }
-    }, 2000)
+    }, 2200 / speed)
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [isPlaying, currentStep, totalSteps, togglePlay])
+  }, [isPlaying, currentStep, totalSteps, speed, togglePlay])
 }

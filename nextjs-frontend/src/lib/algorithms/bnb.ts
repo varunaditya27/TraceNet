@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import type { GraphData } from '@/lib/graph-data'
 import type { AlgorithmModule, StepDef } from './index'
-import { resetGraph, initGraph, dimAllEdges, dimAllNodes, setNodeColor } from '@/lib/d3-graph'
+import { resetGraph, initGraph, dimAllEdges, dimAllNodes } from '@/lib/d3-graph'
 import { COLORS } from '@/lib/constants'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
@@ -21,10 +21,10 @@ const HOSP_POSITIONS = [
 ]
 
 const STEPS: StepDef[] = [
-  { label: 'Load hospital subgraph', detail: '10-node subgraph for tractable B&B search. Sources: E. faecalis (8), C. jejuni (9). Targets: E. faecium (3), S. aureus (4).' },
+  { label: 'Load hospital subgraph', detail: 'Load the computed hospital subgraph, sources, and reachable protected targets.' },
   { label: 'Branch & Bound search', detail: 'Enumerate edge subsets. Prune any branch where current cut size ≥ best known solution. Explore 2^E worst case but prune aggressively.' },
-  { label: 'Optimal cut identified', detail: '4 edges suffice: E. faecalis→E. faecium, E. faecalis→S. aureus, C. jejuni→S. aureus, C. jejuni→E. faecium.' },
-  { label: 'Greedy vs B&B comparison', detail: 'Greedy on this subgraph: 6 edges. B&B optimal: 4 edges. B&B achieves 33% fewer removals — at the cost of exponential search time.' },
+  { label: 'Optimal cut identified', detail: 'Return the smallest feasible directed edge set after all better branches have been explored or safely pruned.' },
+  { label: 'Greedy vs B&B comparison', detail: 'Compare exact and greedy costs on the identical hospital subgraph.' },
 ]
 
 function drawSubgraph(svg: SVG, data: GraphData, optimalHighlight = false): void {
@@ -33,15 +33,25 @@ function drawSubgraph(svg: SVG, data: GraphData, optimalHighlight = false): void
   svg.select('.g-nodes').selectAll('*').remove()
   svg.select('.g-labels').selectAll('*').remove()
 
-  // Draw edges between subgraph nodes
-  for (let i = 0; i < 10; i++) {
-    for (let j = 0; j < 10; j++) {
-      if (i === j) continue
-      const sp = HOSP_POSITIONS[i], tp = HOSP_POSITIONS[j]
-      const isOptimalRemoved = optimalHighlight && bnb.optimal_removed.some(e => e.src === i && e.tgt === j)
+  const globalByName = new Map(data.nodes.map(node => [node.name, node.id]))
+  const localByGlobal = new Map(
+    bnb.hospital_node_names
+      .map((name, localId) => [globalByName.get(name), localId] as const)
+      .filter((entry): entry is readonly [number, number] => entry[0] !== undefined)
+  )
+  const subgraphEdges = data.edges.flatMap(edge => {
+    const src = localByGlobal.get(edge.src)
+    const tgt = localByGlobal.get(edge.tgt)
+    return src === undefined || tgt === undefined ? [] : [{ src, tgt }]
+  })
+
+  // Draw only real graph edges whose endpoints are in the hospital subgraph.
+  subgraphEdges.forEach(edge => {
+      const sp = HOSP_POSITIONS[edge.src], tp = HOSP_POSITIONS[edge.tgt]
+      const isOptimalRemoved = optimalHighlight && bnb.optimal_removed.some(e => e.src === edge.src && e.tgt === edge.tgt)
       const dx = tp.x - sp.x, dy = tp.y - sp.y
       const dist = Math.sqrt(dx*dx + dy*dy)
-      if (dist === 0) continue
+      if (dist === 0) return
       const ux = dx/dist, uy = dy/dist
 
       svg.select('.g-edges')
@@ -53,8 +63,7 @@ function drawSubgraph(svg: SVG, data: GraphData, optimalHighlight = false): void
         .attr('opacity', isOptimalRemoved ? 0.9 : 0.2)
         .attr('stroke-dasharray', isOptimalRemoved ? '5 3' : null)
         .attr('marker-end', 'url(#arrow-default)')
-    }
-  }
+  })
 
   // Draw nodes
   bnb.hospital_node_names.forEach((name, i) => {
@@ -90,8 +99,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
     // Fade out species graph, show subgraph
     dimAllEdges(svg, 0.05, 200)
     dimAllNodes(svg, 0.05, 200)
-    setTimeout(() => {
-      drawSubgraph(svg, data, false)
+    drawSubgraph(svg, data, false)
       // Role labels
       svg.select('.g-annotations')
         .append('text').attr('class', 'bnb-label')
@@ -103,7 +111,6 @@ function enter(svg: SVG, data: GraphData, step: number): void {
         .attr('letter-spacing', '0.06em')
         .text('HOSPITAL SUBGRAPH — 10 NODES')
         .attr('opacity', 0).transition().duration(400).attr('opacity', 1)
-    }, 450)
     return
   }
 
@@ -191,7 +198,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
     cp.append('text').attr('x', 220).attr('y', 110)
       .attr('text-anchor', 'middle').attr('fill', COLORS.text3)
       .attr('font-size', '10px').attr('font-family', 'var(--font-mono)')
-      .text('B&B achieves 33% fewer removals — exact optimal')
+      .text(`B&B saves ${bnb.greedy_cost - bnb.optimal_cost} directed removals — exact optimal`)
   }
 }
 
@@ -212,7 +219,7 @@ export const bnbModule: AlgorithmModule = {
   getResults: (data) => [
     { label: 'optimal cut (B&B)', value: String(data.algorithms.bnb_contain.optimal_cost) },
     { label: 'greedy cut on subgraph', value: String(data.algorithms.bnb_contain.greedy_cost) },
-    { label: 'improvement over greedy', value: '33%' },
+    { label: 'directed removals saved', value: String(data.algorithms.bnb_contain.greedy_cost - data.algorithms.bnb_contain.optimal_cost) },
     { label: 'solution quality', value: 'Exact optimal' },
   ],
 }

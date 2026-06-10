@@ -3,7 +3,7 @@ import type { GraphData, GraphNode } from './graph-data'
 import { ROLE_COLORS, COLORS, TIMINGS } from './constants'
 
 export function nodeRadius(node: GraphNode): number {
-  return Math.min(16, Math.max(6, Math.sqrt(node.plasmid_args) * 2.5))
+  return Math.min(22, Math.max(12, Math.sqrt(node.plasmid_args) * 2.8))
 }
 
 export function edgeOpacity(weight: number): number {
@@ -26,8 +26,8 @@ function addArrowMarkers(defs: d3.Selection<SVGDefsElement, unknown, null, undef
       .attr('viewBox', '0 -4 8 8')
       .attr('refX', 8)
       .attr('refY', 0)
-      .attr('markerWidth', 5)
-      .attr('markerHeight', 5)
+      .attr('markerWidth', 8)
+      .attr('markerHeight', 8)
       .attr('orient', 'auto')
       .append('path')
       .attr('d', 'M0,-4L8,0L0,4')
@@ -84,7 +84,7 @@ export function renderEdges(svg: SVGSel, data: GraphData): void {
       .attr('x1', ep.x1).attr('y1', ep.y1)
       .attr('x2', ep.x2).attr('y2', ep.y2)
       .attr('stroke', COLORS.text3)
-      .attr('stroke-width', Math.max(0.5, edge.weight * 3))
+      .attr('stroke-width', Math.max(1.2, edge.weight * 4.5))
       .attr('opacity', edgeOpacity(edge.weight))
       .attr('marker-end', 'url(#arrow-default)')
       .attr('data-src', edge.src)
@@ -125,11 +125,16 @@ export function renderLabels(svg: SVGSel, data: GraphData): void {
       .attr('id', `lbl-${node.id}`)
       .attr('class', 'node-label')
       .attr('x', node.x)
-      .attr('y', node.y + r + 11)
+      .attr('y', node.y + r + 18)
       .attr('text-anchor', 'middle')
-      .attr('fill', COLORS.text2)
-      .attr('font-size', '9px')
+      .attr('fill', COLORS.text1)
+      .attr('font-size', '14px')
+      .attr('font-weight', 600)
       .attr('font-family', 'var(--font-sans)')
+      .attr('paint-order', 'stroke')
+      .attr('stroke', COLORS.surface0)
+      .attr('stroke-width', 4)
+      .attr('stroke-linejoin', 'round')
       .attr('pointer-events', 'none')
       .text(node.short)
   })
@@ -137,10 +142,41 @@ export function renderLabels(svg: SVGSel, data: GraphData): void {
 
 // === State mutators (called by algorithm modules) ===
 
-export function resetGraph(svg: SVGSel, data: GraphData): void {
+export function resetGraph(svg: SVGSel, data: GraphData, duration: number = TIMINGS.nodeFade): void {
+  if (duration === 0) {
+    svg.selectAll('.node-circle')
+      .interrupt()
+      .attr('opacity', 1)
+      .attr('transform', null)
+      .attr('r', function() {
+        const id = Number(d3.select(this).attr('data-id'))
+        return id >= 0 && id < data.nodes.length ? nodeRadius(data.nodes[id]) : 12
+      })
+      .attr('fill', function() {
+        const id = Number(d3.select(this).attr('data-id'))
+        return id >= 0 && id < data.nodes.length ? ROLE_COLORS[data.nodes[id].role] : COLORS.nodeBridge
+      })
+
+    svg.selectAll('.edge-line')
+      .interrupt()
+      .attr('stroke', COLORS.text3)
+      .attr('stroke-width', function() {
+        return Math.max(1.2, Number(d3.select(this).attr('data-weight')) * 4.5)
+      })
+      .attr('opacity', function() {
+        return edgeOpacity(Number(d3.select(this).attr('data-weight')))
+      })
+      .attr('stroke-dasharray', null)
+      .attr('marker-end', 'url(#arrow-default)')
+
+    svg.selectAll('.g-annotations').selectAll('*').remove()
+    svg.selectAll('.algo-overlay, .halo, .inset-panel, .hop-label, .step-label, .cross-mark').remove()
+    return
+  }
+
   // Restore all nodes
   svg.selectAll('.node-circle')
-    .transition().duration(TIMINGS.nodeFade)
+    .transition().duration(duration)
     .attr('opacity', 1)
     .each(function() {
       const el = d3.select(this)
@@ -152,10 +188,10 @@ export function resetGraph(svg: SVGSel, data: GraphData): void {
 
   // Restore all edges
   svg.selectAll('.edge-line')
-    .transition().duration(TIMINGS.nodeFade)
+    .transition().duration(duration)
     .attr('stroke', COLORS.text3)
     .attr('stroke-width', function() {
-      return Math.max(0.5, Number(d3.select(this).attr('data-weight')) * 3)
+      return Math.max(1.2, Number(d3.select(this).attr('data-weight')) * 4.5)
     })
     .attr('opacity', function() {
       return edgeOpacity(Number(d3.select(this).attr('data-weight')))
@@ -169,25 +205,40 @@ export function resetGraph(svg: SVGSel, data: GraphData): void {
 }
 
 export function setNodeColor(svg: SVGSel, nodeId: number, color: string, opacity = 1, duration: number = TIMINGS.nodeState): void {
-  svg.select(`#n-${nodeId}`)
-    .transition().duration(duration)
+  const node = svg.select(`#n-${nodeId}`)
+  if (duration === 0) {
+    node.interrupt().attr('fill', color).attr('opacity', opacity)
+    return
+  }
+  node.transition().duration(duration)
     .attr('fill', color)
     .attr('opacity', opacity)
 }
 
 export function setNodeOpacity(svg: SVGSel, nodeId: number, opacity: number, duration: number = TIMINGS.nodeFade): void {
-  svg.select(`#n-${nodeId}`)
-    .transition().duration(duration)
-    .attr('opacity', opacity)
+  const node = svg.select(`#n-${nodeId}`)
+  if (duration === 0) {
+    node.interrupt().attr('opacity', opacity)
+    return
+  }
+  node.transition().duration(duration).attr('opacity', opacity)
 }
 
 export function setEdgeActive(
   svg: SVGSel, src: number, tgt: number,
-  color: string = COLORS.amberMid, width = 2, markerId = 'arrow-active',
+  color: string = COLORS.amberMid, width = 3.5, markerId = 'arrow-active',
   duration: number = TIMINGS.nodeState
 ): void {
-  svg.select(`#e-${src}-${tgt}`)
-    .transition().duration(duration)
+  const edge = svg.select(`#e-${src}-${tgt}`)
+  if (duration === 0) {
+    edge.interrupt()
+      .attr('stroke', color)
+      .attr('stroke-width', width)
+      .attr('opacity', 1)
+      .attr('marker-end', `url(#${markerId})`)
+    return
+  }
+  edge.transition().duration(duration)
     .attr('stroke', color)
     .attr('stroke-width', width)
     .attr('opacity', 1)
@@ -195,15 +246,21 @@ export function setEdgeActive(
 }
 
 export function dimAllNodes(svg: SVGSel, opacity = 0.2, duration: number = TIMINGS.nodeFade): void {
-  svg.selectAll('.node-circle')
-    .transition().duration(duration)
-    .attr('opacity', opacity)
+  const nodes = svg.selectAll('.node-circle')
+  if (duration === 0) {
+    nodes.interrupt().attr('opacity', opacity)
+    return
+  }
+  nodes.transition().duration(duration).attr('opacity', opacity)
 }
 
 export function dimAllEdges(svg: SVGSel, opacity = 0.05, duration: number = TIMINGS.nodeFade): void {
-  svg.selectAll('.edge-line')
-    .transition().duration(duration)
-    .attr('opacity', opacity)
+  const edges = svg.selectAll('.edge-line')
+  if (duration === 0) {
+    edges.interrupt().attr('opacity', opacity)
+    return
+  }
+  edges.transition().duration(duration).attr('opacity', opacity)
 }
 
 export function highlightNode(svg: SVGSel, nodeId: number, color: string, scale = 1.2): void {

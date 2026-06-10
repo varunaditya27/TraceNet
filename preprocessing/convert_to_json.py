@@ -562,6 +562,7 @@ def main():
                 "pattern": pattern,
                 "pattern_length": len(pattern),
                 "gene_name": gene_name,
+                "parent_text": text,
                 "text_length": len(text),
                 "matches": bm_matches,
                 "comparisons_bm": bm_comps,

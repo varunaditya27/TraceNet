@@ -2,7 +2,6 @@
 import { useEffect, useRef } from 'react'
 import * as d3 from 'd3'
 import { initGraph, nodeRadius } from '@/lib/d3-graph'
-import { ROLE_COLORS } from '@/lib/constants'
 import type { GraphData, GraphNode } from '@/lib/graph-data'
 
 interface Props {

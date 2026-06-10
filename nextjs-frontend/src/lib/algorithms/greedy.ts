@@ -7,10 +7,10 @@ import { COLORS } from '@/lib/constants'
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
 const STEPS: StepDef[] = [
-  { label: 'Identify sources and targets', detail: 'Sources: E. faecalis (14), C. jejuni (15). ESKAPE targets: nodes 0–5. Goal: disconnect all sources from all targets.' },
-  { label: 'Sort edges by weight', detail: 'Highest-weight edges prioritized for removal. E. faecalis ↔ E. faecium (w=0.714) is first — the strongest transmission link.' },
+  { label: 'Identify sources and targets', detail: 'Read the computed source set and the ESKAPE targets reachable from those sources.' },
+  { label: 'Sort edges by weight', detail: 'Prioritize higher-weight directed links as candidate removals.' },
   { label: 'Iterative edge removal', detail: 'Remove one edge at a time. Check connectivity. If sources still reach any target, continue.' },
-  { label: 'Containment achieved', detail: '141 edges removed. Sources are now fully isolated from all ESKAPE pathogens. Greedy approximation — not guaranteed optimal.' },
+  { label: 'Containment achieved', detail: 'Stop when the computed source set can no longer reach the protected target set.' },
 ]
 
 function enter(svg: SVG, data: GraphData, step: number): void {
@@ -22,7 +22,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
     dimAllNodes(svg, 0.15)
     // Highlight sources green, targets red
     greedy.sources.forEach(id => setNodeColor(svg, id, COLORS.riskLow, 1))
-    ;[0,1,2,3,4,5].forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 1))
+    greedy.targets.forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 1))
     return
   }
 
@@ -31,7 +31,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
     dimAllEdges(svg, 0.05)
     dimAllNodes(svg, 0.15)
     greedy.sources.forEach(id => setNodeColor(svg, id, COLORS.riskLow, 1))
-    ;[0,1,2,3,4,5].forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 1))
+    greedy.targets.forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 1))
     // Highlight top 5 heaviest edges in amber
     const top5 = greedy.removed_edges.slice(0, 5)
     top5.forEach(e => {
@@ -42,8 +42,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
   if (step >= 2) {
     // Animate removal of first 10 edges with × marks and fade
     const first10 = greedy.removed_edges.slice(0, 10)
-    first10.forEach((e, i) => {
-      setTimeout(() => {
+    first10.forEach((e) => {
         // Add × at midpoint
         const sn = data.nodes[e.src], tn = data.nodes[e.tgt]
         if (!sn || !tn) return
@@ -70,7 +69,6 @@ function enter(svg: SVG, data: GraphData, step: number): void {
           .attr('stroke', COLORS.riskHigh)
           .attr('stroke-dasharray', '4 3')
           .attr('opacity', 0)
-      }, i * 400)
     })
     // Counter
     svg.select('.g-annotations')
@@ -81,7 +79,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
       .attr('fill', COLORS.amberMid)
       .attr('font-size', '12px')
       .attr('font-family', 'var(--font-mono)')
-      .text('removing 141 edges (showing first 10)…')
+      .text(`removing ${greedy.n_removed} edges (showing first 10)…`)
       .attr('opacity', 0)
       .transition().duration(400).attr('opacity', 1)
   }
@@ -92,7 +90,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
     dimAllEdges(svg, 0.04)
     dimAllNodes(svg, 0.15)
     greedy.sources.forEach(id => setNodeColor(svg, id, COLORS.riskLow, 1))
-    ;[0,1,2,3,4,5].forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 0.8))
+    greedy.targets.forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 0.8))
     // Fade all removed edges to near-invisible
     greedy.removed_edges.forEach(e => {
       svg.select(`#e-${e.src}-${e.tgt}`)
@@ -108,7 +106,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
       .attr('font-size', '12px')
       .attr('font-family', 'var(--font-mono)')
       .attr('opacity', 0)
-      .text('✓ 141 edges removed — sources isolated from ESKAPE targets')
+      .text(`✓ ${greedy.n_removed} edges removed — sources isolated from reachable targets`)
       .transition().duration(600).attr('opacity', 1)
   }
 }
@@ -125,7 +123,7 @@ export const greedyModule: AlgorithmModule = {
   getResults: (data) => [
     { label: 'edges removed', value: String(data.algorithms.greedy_contain.n_removed) },
     { label: 'source nodes isolated', value: String(data.algorithms.greedy_contain.sources.length) },
-    { label: 'ESKAPE targets protected', value: '6' },
+    { label: 'reachable ESKAPE targets protected', value: String(data.algorithms.greedy_contain.targets.length) },
     { label: 'solution quality', value: 'Approximate' },
   ],
 }

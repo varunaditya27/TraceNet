@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import type { GraphData } from '@/lib/graph-data'
 import type { AlgorithmModule, StepDef } from './index'
 import { resetGraph, initGraph, dimAllNodes, dimAllEdges } from '@/lib/d3-graph'
-import { COLORS, TIMINGS } from '@/lib/constants'
+import { COLORS } from '@/lib/constants'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
@@ -105,7 +105,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
   if (step === 0) {
     dimAllEdges(svg, 0.05, 200)
     dimAllNodes(svg, 0.1, 200)
-    setTimeout(() => drawDAG(svg, data, -1), 450)
+    drawDAG(svg, data, -1)
     return
   }
   if (step === 1) {
@@ -131,11 +131,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
   }
   if (step === 2) {
     svg.selectAll('.indeg-label').remove()
-    // Animate highlighting nodes one by one in topo order
-    const order = data.algorithms.topo_sort.order
-    order.forEach((name, i) => {
-      setTimeout(() => drawDAG(svg, data, i), i * 350)
-    })
+    drawDAG(svg, data, data.algorithms.topo_sort.order.length - 1)
     return
   }
   if (step === 3) {
@@ -150,7 +146,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
       .attr('font-size', '10px')
       .attr('font-family', 'var(--font-mono)')
       .attr('opacity', 0)
-      .text('tetM → sul1 → aac6Ib → vanA → blaTEM → blaSHV → blaCTXM → blaOXA48 → mcr1 → blaNDM1')
+      .text(data.algorithms.topo_sort.order.join(' → '))
       .transition().duration(500).attr('opacity', 0.9)
   }
 }
@@ -169,9 +165,9 @@ export const topoModule: AlgorithmModule = {
   steps: STEPS,
   enter,
   exit,
-  getResults: () => [
-    { label: 'ARG nodes in topological order', value: '10' },
-    { label: 'dependency edges processed', value: '8' },
-    { label: 'cycle detected', value: 'No' },
+  getResults: (data) => [
+    { label: 'ARG nodes in topological order', value: String(data.algorithms.topo_sort.order.length) },
+    { label: 'dependency edges processed', value: String(data.algorithms.topo_sort.dag_edges.length) },
+    { label: 'cycle detected', value: data.algorithms.topo_sort.has_cycle ? 'Yes' : 'No' },
   ],
 }

@@ -26,7 +26,7 @@ export interface BFSResult {
   source_name: string
   distances: number[]
   parent: (number | null)[]
-  reachable: number[]
+  reachable: number
 }
 
 export interface SCCResult {
@@ -48,6 +48,7 @@ export interface BMResult {
   pattern: string
   pattern_length: number
   gene_name: string
+  parent_text: string
   text_length: number
   matches: number[]
   comparisons_bm: number
@@ -130,7 +131,11 @@ export interface GraphData {
 }
 
 export async function loadGraphData(): Promise<GraphData> {
-  const res = await fetch('/data/hgt_graph.json', { cache: 'force-cache' })
+  const res = await fetch('/data/hgt_graph.json?schema=2', { cache: 'no-store' })
   if (!res.ok) throw new Error('Failed to load graph data')
-  return res.json()
+  const data = await res.json() as GraphData
+  if (!data.algorithms.boyer_moore.parent_text) {
+    throw new Error('Graph data is missing the Boyer-Moore parent DNA sequence')
+  }
+  return data
 }

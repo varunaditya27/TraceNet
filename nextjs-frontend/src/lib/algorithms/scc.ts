@@ -1,124 +1,165 @@
 import * as d3 from 'd3'
 import type { GraphData } from '@/lib/graph-data'
 import type { AlgorithmModule, StepDef } from './index'
-import { resetGraph, dimAllNodes, dimAllEdges, setNodeColor } from '@/lib/d3-graph'
-import { COLORS, TIMINGS } from '@/lib/constants'
+import type { AlgorithmVisualState } from '@/lib/execution/types'
+import { edgeOpacity, nodeRadius, resetGraph } from '@/lib/d3-graph'
+import { COLORS, ROLE_COLORS } from '@/lib/constants'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
-const STEPS: StepDef[] = [
-  { label: 'DFS pass 1 (original graph)', detail: 'Run depth-first search, recording finish times for each node.' },
-  { label: 'Transpose graph', detail: 'Reverse all edge directions to create the transposed graph G^T.' },
-  { label: 'DFS pass 2 (transposed)', detail: 'DFS on G^T in reverse finish-time order reveals strongly connected components.' },
-  { label: 'Components identified', detail: 'Component A: 12 Gram-negative species. Component B: 4 Gram-positive species. The Gram boundary is a true topological divide.' },
-]
+const STEPS: StepDef[] = [{ label: 'Detailed Kosaraju execution', detail: 'Driven by deterministic DFS snapshots.' }]
+const COMPONENT_COLORS = [COLORS.sccViolet, COLORS.riskLow, COLORS.bfsTeal, COLORS.amberMid]
 
-// Centroid of a set of nodes
-function centroid(nodes: { x: number; y: number }[]): { cx: number; cy: number } {
-  const cx = nodes.reduce((s, n) => s + n.x, 0) / nodes.length
-  const cy = nodes.reduce((s, n) => s + n.y, 0) / nodes.length
-  return { cx, cy }
+function centroid(nodes: { x: number; y: number }[]) {
+  return {
+    cx: nodes.reduce((sum, node) => sum + node.x, 0) / nodes.length,
+    cy: nodes.reduce((sum, node) => sum + node.y, 0) / nodes.length,
+  }
 }
 
-function enter(svg: SVG, data: GraphData, step: number): void {
-  const scc = data.algorithms.scc
+function drawStack(svg: SVG, data: GraphData, title: string, ids: number[], x: number, y: number, color: string) {
+  const group = svg.select('.g-annotations').append('g').attr('class', 'scc-stack')
+  group.append('text')
+    .attr('x', x).attr('y', y)
+    .attr('fill', COLORS.text1).attr('font-size', 14).attr('font-weight', 600)
+    .attr('font-family', 'var(--font-sans)').text(title)
+  ids.slice(-8).forEach((id, index) => {
+    const boxY = y + 12 + index * 28
+    group.append('rect')
+      .attr('x', x).attr('y', boxY).attr('width', 154).attr('height', 24)
+      .attr('rx', 4).attr('fill', COLORS.surface2).attr('stroke', color)
+    group.append('text')
+      .attr('x', x + 8).attr('y', boxY + 16)
+      .attr('fill', COLORS.text1).attr('font-size', 12)
+      .attr('font-family', 'var(--font-mono)').text(data.nodes[id].short)
+  })
+}
 
-  if (step === 0) {
-    resetGraph(svg, data)
-    // Animate DFS traversal: light nodes up in order
-    dimAllNodes(svg, 0.15)
-    dimAllEdges(svg, 0.05)
-    data.nodes.forEach((node, i) => {
-      setTimeout(() => {
-        setNodeColor(svg, node.id, COLORS.amberDim, 0.8, TIMINGS.nodeFade)
-      }, i * 80)
+function reverseEdges(svg: SVG, data: GraphData, transposed: boolean) {
+  const reducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  svg.selectAll<SVGLineElement, unknown>('.edge-line').each(function () {
+    const line = d3.select(this)
+    const src = Number(line.attr('data-src'))
+    const tgt = Number(line.attr('data-tgt'))
+    const source = data.nodes[transposed ? tgt : src]
+    const target = data.nodes[transposed ? src : tgt]
+    const sourceRadius = nodeRadius(source)
+    const targetRadius = nodeRadius(target)
+    const dx = target.x - source.x
+    const dy = target.y - source.y
+    const distance = Math.hypot(dx, dy) || 1
+    const ux = dx / distance
+    const uy = dy / distance
+    if (reducedMotion) {
+      line
+        .attr('x1', source.x + ux * (sourceRadius + 4))
+        .attr('y1', source.y + uy * (sourceRadius + 4))
+        .attr('x2', target.x - ux * (targetRadius + 10))
+        .attr('y2', target.y - uy * (targetRadius + 10))
+        .attr('marker-end', 'url(#arrow-default)')
+    } else {
+      line.transition().duration(550).ease(d3.easeCubicInOut)
+        .attr('x1', source.x + ux * (sourceRadius + 4))
+        .attr('y1', source.y + uy * (sourceRadius + 4))
+        .attr('x2', target.x - ux * (targetRadius + 10))
+        .attr('y2', target.y - uy * (targetRadius + 10))
+        .attr('marker-end', 'url(#arrow-default)')
+    }
+  })
+}
+
+function drawComponentRegions(svg: SVG, data: GraphData, components: number[][]) {
+  const layer = svg.select('.g-annotations')
+  components.forEach((component, index) => {
+    if (!component.length) return
+    const nodes = component.map(id => data.nodes[id])
+    const { cx, cy } = centroid(nodes)
+    const xs = nodes.map(node => node.x)
+    const ys = nodes.map(node => node.y)
+    const color = COMPONENT_COLORS[index % COMPONENT_COLORS.length]
+    const rx = Math.max(45, (Math.max(...xs) - Math.min(...xs)) / 2 + 46)
+    const ry = Math.max(45, (Math.max(...ys) - Math.min(...ys)) / 2 + 46)
+    layer.append('ellipse')
+      .attr('class', 'scc-region')
+      .attr('cx', cx).attr('cy', cy).attr('rx', rx).attr('ry', ry)
+      .attr('fill', color).attr('fill-opacity', 0.10)
+      .attr('stroke', color).attr('stroke-width', 2.5).attr('stroke-opacity', 0.9)
+      .lower()
+    layer.append('text')
+      .attr('class', 'scc-region')
+      .attr('x', cx).attr('y', cy - ry - 10).attr('text-anchor', 'middle')
+      .attr('fill', color).attr('font-size', 14).attr('font-weight', 600)
+      .attr('font-family', 'var(--font-sans)')
+      .text(`SCC ${index + 1} · ${component.length} species`)
+  })
+}
+
+function enter(svg: SVG, data: GraphData, _step: number, visualState?: AlgorithmVisualState): void {
+  const state = visualState ?? {}
+  svg.selectAll('*').interrupt()
+  resetGraph(svg, data, 0)
+  svg.selectAll('.g-annotations').selectAll('*').remove()
+  svg.selectAll('.node-circle').attr('transform', null)
+  reverseEdges(svg, data, state.graphDirection === 'transposed')
+
+  svg.selectAll<SVGLineElement, unknown>('.edge-line')
+    .attr('stroke', COLORS.text3)
+    .attr('stroke-width', function () { return Math.max(1.2, Number(d3.select(this).attr('data-weight')) * 4.5) })
+    .attr('opacity', function () { return Math.max(0.16, edgeOpacity(Number(d3.select(this).attr('data-weight')))) })
+
+  svg.selectAll<SVGCircleElement, unknown>('.node-circle')
+    .attr('fill', function () {
+      const id = Number(d3.select(this).attr('data-id'))
+      return ROLE_COLORS[data.nodes[id].role]
     })
-    return
-  }
-
-  if (step === 1) {
-    // Show "transposed" state — briefly dim edges
-    dimAllNodes(svg, 0.4)
-    dimAllEdges(svg, 0.03)
-    svg.selectAll('.edge-line')
-      .transition().duration(400)
-      .attr('stroke', COLORS.amberDim)
-      .attr('opacity', 0.1)
-    // Label
-    svg.select('.g-annotations').selectAll('.transpose-label').remove()
-    svg.select('.g-annotations')
-      .append('text')
-      .attr('class', 'transpose-label')
-      .attr('x', 570).attr('y', 30)
-      .attr('text-anchor', 'middle')
-      .attr('fill', COLORS.text2)
-      .attr('font-size', '11px')
-      .attr('font-family', 'var(--font-mono)')
-      .attr('opacity', 0)
-      .text('Graph transposed — edges reversed')
-      .transition().duration(400).attr('opacity', 1)
-    return
-  }
-
-  if (step >= 2) {
-    resetGraph(svg, data)
-    dimAllEdges(svg, 0.05)
-
-    // Color by component
-    scc.groups.forEach((group, compIdx) => {
-      const color: string = compIdx === 0 ? COLORS.sccViolet : COLORS.riskLow
-      group.forEach(nodeId => {
-        setNodeColor(svg, nodeId, color, 1)
-      })
+    .attr('opacity', 0.28)
+    .attr('r', function () {
+      const id = Number(d3.select(this).attr('data-id'))
+      return nodeRadius(data.nodes[id])
     })
+
+  state.visitedNodes?.forEach(id => {
+    svg.select(`#n-${id}`).attr('fill', COLORS.amberDim).attr('opacity', 0.85)
+  })
+  state.currentComponent?.forEach(id => {
+    svg.select(`#n-${id}`).attr('fill', COLORS.sccViolet).attr('opacity', 1)
+  })
+  state.discoveredComponents?.forEach((component, index) => {
+    component.forEach(id => svg.select(`#n-${id}`).attr('fill', COMPONENT_COLORS[index % COMPONENT_COLORS.length]).attr('opacity', 1))
+  })
+  if (state.activeNode !== undefined) {
+    const radius = nodeRadius(data.nodes[state.activeNode])
+    svg.select(`#n-${state.activeNode}`)
+      .attr('fill', COLORS.amberBright).attr('opacity', 1).attr('r', radius * 1.35)
+      .attr('stroke', COLORS.text1).attr('stroke-width', 3)
+  }
+  if (state.activeEdge) {
+    const [src, tgt] = state.activeEdge
+    const edgeId = state.graphDirection === 'transposed' ? `#e-${tgt}-${src}` : `#e-${src}-${tgt}`
+    svg.select(edgeId)
+      .attr('stroke', COLORS.bfsTeal).attr('stroke-width', 4).attr('opacity', 1)
+      .attr('marker-end', 'url(#arrow-active)')
   }
 
-  if (step >= 3) {
-    // Add SCC halo ellipses
-    svg.selectAll('.scc-halo').remove()
-    const haloGroup = svg.select('.g-annotations')
+  const modeLabel = state.graphDirection === 'transposed' ? 'TRANSPOSED GRAPH Gᵀ · ALL ARROWS REVERSED' : 'ORIGINAL DIRECTED GRAPH G'
+  svg.select('.g-annotations').append('text')
+    .attr('class', 'scc-mode-label')
+    .attr('x', 570).attr('y', 38).attr('text-anchor', 'middle')
+    .attr('fill', state.graphDirection === 'transposed' ? COLORS.sccViolet : COLORS.bfsTeal)
+    .attr('font-size', 15).attr('font-weight', 700).attr('font-family', 'var(--font-sans)')
+    .text(modeLabel)
 
-    scc.groups.forEach((group, compIdx) => {
-      const color: string = compIdx === 0 ? COLORS.sccViolet : COLORS.riskLow
-      const groupNodes = group.map(id => data.nodes[id])
-      const { cx, cy } = centroid(groupNodes)
-
-      const xs = groupNodes.map(n => n.x)
-      const ys = groupNodes.map(n => n.y)
-      const rx = (Math.max(...xs) - Math.min(...xs)) / 2 + 40
-      const ry = (Math.max(...ys) - Math.min(...ys)) / 2 + 40
-
-      haloGroup.append('ellipse')
-        .attr('class', 'scc-halo')
-        .attr('cx', cx).attr('cy', cy)
-        .attr('rx', 0).attr('ry', 0)
-        .attr('fill', color)
-        .attr('opacity', 0.08)
-        .attr('stroke', color)
-        .attr('stroke-width', 1)
-        .attr('stroke-opacity', 0.3)
-        .transition().duration(TIMINGS.sccHalo)
-        .ease(d3.easeBackOut)
-        .attr('rx', rx).attr('ry', ry)
-
-      // Component label
-      haloGroup.append('text')
-        .attr('class', 'scc-halo')
-        .attr('x', cx).attr('y', cy - ry - 8)
-        .attr('text-anchor', 'middle')
-        .attr('fill', color)
-        .attr('font-size', '10px')
-        .attr('font-family', 'var(--font-mono)')
-        .attr('opacity', 0)
-        .text(compIdx === 0 ? 'Gram-positive (4 nodes)' : 'Gram-negative (12 nodes)')
-        .transition().delay(400).duration(400).attr('opacity', 0.9)
-    })
-  }
+  drawStack(svg, data, 'DFS recursion stack', state.recursionStack ?? [], 720, 70, COLORS.bfsTeal)
+  drawStack(svg, data, 'Finishing-order stack', state.finishStack ?? [], 900, 70, COLORS.amberMid)
+  if (state.revealAllComponents) drawComponentRegions(svg, data, data.algorithms.scc.groups)
+  else if (state.discoveredComponents?.length) drawComponentRegions(svg, data, state.discoveredComponents)
 }
 
 function exit(svg: SVG, data: GraphData): void {
-  svg.selectAll('.scc-halo, .transpose-label').remove()
-  resetGraph(svg, data)
+  svg.selectAll('*').interrupt()
+  svg.selectAll('.scc-stack, .scc-region, .scc-mode-label').remove()
+  reverseEdges(svg, data, false)
+  resetGraph(svg, data, 0)
 }
 
 export const sccModule: AlgorithmModule = {
@@ -127,7 +168,6 @@ export const sccModule: AlgorithmModule = {
   exit,
   getResults: (data) => [
     { label: 'strongly connected components', value: String(data.algorithms.scc.n_components) },
-    { label: 'Gram-negative cluster (nodes)', value: '12' },
-    { label: 'Gram-positive cluster (nodes)', value: '4' },
+    ...data.algorithms.scc.sizes.map((size, index) => ({ label: `component ${index + 1} size`, value: String(size) })),
   ],
 }

@@ -15,6 +15,10 @@ const STEPS: StepDef[] = [
 
 function enter(svg: SVG, data: GraphData, step: number): void {
   const bfs = data.algorithms.bfs
+  const reachable = bfs.distances
+    .map((distance, nodeId) => ({ distance, nodeId }))
+    .filter(item => item.distance >= 0)
+    .map(item => item.nodeId)
   // Always reset to clean state first for steps 0
   if (step === 0) {
     resetGraph(svg, data)
@@ -32,13 +36,10 @@ function enter(svg: SVG, data: GraphData, step: number): void {
     // Source stays amber
     setNodeColor(svg, bfs.source, COLORS.amberMid, 1)
     // Reachable nodes (hop 1) in teal
-    bfs.reachable.forEach((nodeId, i) => {
+    reachable.forEach((nodeId) => {
       if (nodeId === bfs.source) return
-      setTimeout(() => {
-        setNodeColor(svg, nodeId, COLORS.bfsTeal, 1, TIMINGS.nodeState)
-        // Activate edges from source to these nodes
-        setEdgeActive(svg, bfs.source, nodeId, COLORS.bfsTeal, 1.5, 'arrow-safe', TIMINGS.nodeState)
-      }, i * 60)
+      setNodeColor(svg, nodeId, COLORS.bfsTeal, 1, TIMINGS.nodeState)
+      setEdgeActive(svg, bfs.source, nodeId, COLORS.bfsTeal, 3.5, 'arrow-safe', TIMINGS.nodeState)
     })
   }
 
@@ -60,7 +61,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
 
   if (step >= 3) {
     // Add distance labels for reachable
-    bfs.reachable.forEach(nodeId => {
+    reachable.forEach(nodeId => {
       const node = data.nodes[nodeId]
       const dist = bfs.distances[nodeId]
       addTextLabel(svg, node.x, node.y - 18, String(dist), COLORS.amberMid, '11px', 'hop-label')
@@ -78,8 +79,8 @@ export const bfsModule: AlgorithmModule = {
   enter,
   exit,
   getResults: (data) => [
-    { label: 'nodes reachable from K. pneumoniae', value: String(data.algorithms.bfs.reachable.length) },
-    { label: 'unreachable nodes (other component)', value: '4' },
-    { label: 'hop distance to all reachable', value: '1' },
+    { label: `nodes reachable from ${data.nodes[data.algorithms.bfs.source].short}`, value: String(data.algorithms.bfs.distances.filter(distance => distance >= 0).length) },
+    { label: 'unreachable nodes', value: String(data.algorithms.bfs.distances.filter(distance => distance < 0).length) },
+    { label: 'maximum finite hop distance', value: String(Math.max(...data.algorithms.bfs.distances)) },
   ],
 }

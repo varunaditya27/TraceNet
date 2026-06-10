@@ -1,5 +1,6 @@
 import type { GraphData } from '@/lib/graph-data'
 import type * as d3 from 'd3'
+import type { AlgorithmVisualState } from '@/lib/execution/types'
 import { bfsModule } from './bfs'
 import { sccModule } from './scc'
 import { topoModule } from './topo'
@@ -16,7 +17,7 @@ export interface StepDef {
 
 export interface AlgorithmModule {
   steps: StepDef[]
-  enter: (svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: GraphData, step: number) => void
+  enter: (svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: GraphData, step: number, visualState?: AlgorithmVisualState) => void
   exit: (svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: GraphData) => void
   getResults: (data: GraphData) => { label: string; value: string }[]
 }

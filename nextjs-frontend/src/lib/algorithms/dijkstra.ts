@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import type { GraphData } from '@/lib/graph-data'
 import type { AlgorithmModule, StepDef } from './index'
 import { resetGraph, dimAllNodes, dimAllEdges, setNodeColor, setEdgeActive, addTextLabel } from '@/lib/d3-graph'
-import { COLORS, TIMINGS } from '@/lib/constants'
+import { COLORS } from '@/lib/constants'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
@@ -38,17 +38,16 @@ function enter(svg: SVG, data: GraphData, step: number): void {
       } else if (nodeId === dijk.source) {
         setNodeColor(svg, nodeId, COLORS.amberMid, 1)
       } else {
-        // Stagger settlement
-        setTimeout(() => {
-          setNodeColor(svg, nodeId, colorScale(dist), 1, 400)
-        }, dist * 300)
+        setNodeColor(svg, nodeId, colorScale(dist), 1, 400)
       }
     })
   }
 
   if (step >= 2) {
     // Highlight ESKAPE paths
-    const eskapeIds = [1, 2, 5] // reachable ESKAPE nodes (cloacae, aeruginosa, baumannii)
+    const eskapeIds = Object.keys(dijk.eskape_paths)
+      .map(Number)
+      .filter(targetId => dijk.eskape_paths[String(targetId)]?.dist !== null)
     eskapeIds.forEach(targetId => {
       const pathKey = String(targetId)
       const pathData = dijk.eskape_paths[pathKey]

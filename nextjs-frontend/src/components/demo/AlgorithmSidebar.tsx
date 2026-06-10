@@ -14,17 +14,7 @@ export function AlgorithmSidebar() {
   const { selectedAlgo, setAlgo, sidebarCollapsed, toggleSidebar } = useDemoStore()
 
   return (
-    <aside style={{
-      width: sidebarCollapsed ? '48px' : '260px',
-      background: 'var(--surface-2)',
-      borderRight: '1px solid var(--surface-3)',
-      flexShrink: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      transition: 'width 250ms ease-in-out',
-      position: 'relative',
-    }}>
+    <aside className={`algorithm-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
       {/* Toggle button */}
       <button
         onClick={toggleSidebar}
@@ -67,9 +57,9 @@ export function AlgorithmSidebar() {
       )}
 
       {/* Algorithm list */}
-      <nav style={{ flex: 1, overflowY: 'auto', padding: sidebarCollapsed ? '48px 0 0' : '8px 0' }}>
+      <nav>
         {GROUPS.map(group => (
-          <div key={group.unit}>
+          <div className="algorithm-group" key={group.unit}>
             {!sidebarCollapsed && (
               <div style={{
                 padding: '12px 16px 4px',
@@ -91,37 +81,15 @@ export function AlgorithmSidebar() {
                   key={id}
                   onClick={() => setAlgo(id)}
                   title={sidebarCollapsed ? meta.name : undefined}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: sidebarCollapsed ? '10px 0' : '9px 16px',
-                    justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                    background: isActive ? 'var(--amber-glow)' : 'none',
-                    border: 'none',
-                    borderLeft: isActive ? '2px solid var(--amber-mid)' : '2px solid transparent',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'background 150ms, border-color 150ms',
-                  }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
-                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'none' }}
+                  className={`algorithm-nav-button ${isActive ? 'active' : ''}`}
                 >
                   <span style={{ fontSize: '14px', flexShrink: 0, color: isActive ? 'var(--amber-bright)' : 'var(--text-2)' }}>
                     {meta.icon}
                   </span>
                   {!sidebarCollapsed && (
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: '13px',
-                        fontWeight: isActive ? 600 : 400,
-                        color: isActive ? 'var(--amber-bright)' : 'var(--text-2)',
-                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      }}>
-                        {meta.name}
-                      </div>
+                    <div className="algorithm-nav-copy">
+                      <div>{meta.name}</div>
+                      <small>{meta.timeComplexity}</small>
                     </div>
                   )}
                 </button>

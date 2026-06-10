@@ -1,133 +1,139 @@
 import * as d3 from 'd3'
 import type { GraphData } from '@/lib/graph-data'
 import type { AlgorithmModule, StepDef } from './index'
-import { resetGraph, dimAllNodes, dimAllEdges, setNodeColor, addTextLabel } from '@/lib/d3-graph'
+import type { AlgorithmVisualState, FloydWarshallVisualState } from '@/lib/execution/types'
+import { formatDistance } from '@/lib/execution/utils'
+import { resetGraph, dimAllNodes, dimAllEdges, setNodeColor, setEdgeActive } from '@/lib/d3-graph'
 import { COLORS } from '@/lib/constants'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
-const STEPS: StepDef[] = [
-  { label: 'Initialize distance matrix', detail: 'Build 16×16 matrix. Diagonal = 0, direct edges = −log(w), others = ∞.' },
-  { label: 'Relax all pairs', detail: 'For each intermediate node k, update dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]). V³ = 4,096 operations.' },
-  { label: 'Compute vulnerability scores', detail: 'Sum each row (total reach). Lower score = more connected = more dangerous. K. pneumoniae scores 1.393 — most vulnerable.' },
-  { label: 'Most vulnerable node', detail: 'K. pneumoniae (node 0) has the lowest total distance to all reachable nodes — the most epidemiologically central species.' },
-]
+const STEPS: StepDef[] = [{ label: 'Deterministic all-pairs execution', detail: 'Driven by inspectable (k,i,j) snapshots.' }]
+const I_COLOR = COLORS.bfsTeal
+const J_COLOR = '#f472b6'
+const K_COLOR = COLORS.amberBright
 
-function drawMatrix(svg: SVG, data: GraphData, filledRows: number): void {
+function drawMatrix(svg: SVG, data: GraphData, state: FloydWarshallVisualState): void {
   svg.selectAll('.fw-matrix').remove()
-  const fw = data.algorithms.floyd_warshall
-  const n = 16
-  const cellSize = 20
-  const matW = n * cellSize
-  const matH = n * cellSize
-  const mx = (1140 - matW) / 2
-  const my = (670 - matH) / 2 - 20
+  const n = state.matrix.length
+  const cellSize = 30
+  const matrixX = 628
+  const matrixY = 118
+  const group = svg.append('g').attr('class', 'fw-matrix')
+  const finite = state.matrix.flat().filter((value): value is number => value !== null)
+  const max = Math.max(...finite, 1)
+  const color = d3.scaleSequential(d3.interpolateRdYlGn).domain([max, 0])
 
-  const allDists = fw.dist_matrix.flat().filter((v): v is number => v !== null)
-  const minD = Math.min(...allDists)
-  const maxD = Math.max(...allDists)
-  const colorScale = d3.scaleSequential(d3.interpolateRdYlGn).domain([maxD, minD])
+  group.append('rect')
+    .attr('x', matrixX - 50).attr('y', matrixY - 58)
+    .attr('width', n * cellSize + 62).attr('height', n * cellSize + 78)
+    .attr('rx', 8).attr('fill', COLORS.surface1).attr('stroke', COLORS.surface3)
+  group.append('text')
+    .attr('x', matrixX).attr('y', matrixY - 34)
+    .attr('fill', COLORS.text1).attr('font-size', 16).attr('font-weight', 700)
+    .attr('font-family', 'var(--font-sans)').text('All-pairs distance matrix')
+  group.append('text')
+    .attr('x', matrixX + 245).attr('y', matrixY - 34)
+    .attr('fill', state.updated ? COLORS.riskLow : COLORS.text2).attr('font-size', 14)
+    .attr('font-weight', 700).attr('font-family', 'var(--font-sans)')
+    .text(state.updated === undefined ? 'Initialization' : state.updated ? 'UPDATED' : 'NO UPDATE')
 
-  const gMatrix = svg.append('g').attr('class', 'fw-matrix')
-
-  gMatrix.append('rect')
-    .attr('x', mx - 8).attr('y', my - 24)
-    .attr('width', matW + 16).attr('height', matH + 32)
-    .attr('fill', COLORS.surface1)
-    .attr('stroke', COLORS.surface3)
-    .attr('rx', 6)
-
-  gMatrix.append('text')
-    .attr('x', mx + matW/2).attr('y', my - 8)
-    .attr('text-anchor', 'middle')
-    .attr('fill', COLORS.text3)
-    .attr('font-size', '9px')
-    .attr('font-family', 'var(--font-mono)')
-    .attr('letter-spacing', '0.06em')
-    .text('ALL-PAIRS DISTANCE MATRIX (16×16)')
-
-  for (let i = 0; i < filledRows; i++) {
-    for (let j = 0; j < n; j++) {
-      const val = fw.dist_matrix[i][j]
-      const color = val === null ? COLORS.surface3 : colorScale(val)
-      gMatrix.append('rect')
-        .attr('x', mx + j * cellSize).attr('y', my + i * cellSize)
-        .attr('width', cellSize - 1).attr('height', cellSize - 1)
-        .attr('fill', color)
-        .attr('opacity', val === null ? 0.3 : 0.85)
-    }
+  for (let index = 0; index < n; index += 1) {
+    group.append('text')
+      .attr('x', matrixX + index * cellSize + cellSize / 2).attr('y', matrixY - 9)
+      .attr('text-anchor', 'middle').attr('fill', index === state.j ? J_COLOR : COLORS.text2)
+      .attr('font-size', 11).attr('font-family', 'var(--font-mono)').text(index)
+    group.append('text')
+      .attr('x', matrixX - 14).attr('y', matrixY + index * cellSize + 19)
+      .attr('text-anchor', 'middle').attr('fill', index === state.i ? I_COLOR : COLORS.text2)
+      .attr('font-size', 11).attr('font-family', 'var(--font-mono)').text(index)
   }
+
+  state.matrix.forEach((row, i) => row.forEach((value, j) => {
+    const isCurrent = i === state.i && j === state.j
+    const isIK = i === state.i && j === state.k
+    const isKJ = i === state.k && j === state.j
+    const stroke = isCurrent ? (state.updated ? COLORS.riskLow : J_COLOR) : isIK ? I_COLOR : isKJ ? K_COLOR : COLORS.surface3
+    group.append('rect')
+      .attr('x', matrixX + j * cellSize).attr('y', matrixY + i * cellSize)
+      .attr('width', cellSize - 1).attr('height', cellSize - 1)
+      .attr('fill', value === null ? COLORS.surface2 : color(value))
+      .attr('fill-opacity', value === null ? 0.65 : 0.86)
+      .attr('stroke', stroke).attr('stroke-width', isCurrent || isIK || isKJ ? 3 : 0.5)
+    group.append('text')
+      .attr('x', matrixX + j * cellSize + cellSize / 2)
+      .attr('y', matrixY + i * cellSize + 19)
+      .attr('text-anchor', 'middle')
+      .attr('fill', value === null ? COLORS.text2 : COLORS.surface0)
+      .attr('font-size', 12).attr('font-weight', isCurrent ? 700 : 500)
+      .attr('font-family', 'var(--font-mono)')
+      .text(value === null ? '∞' : value.toFixed(1))
+  }))
 }
 
-function enter(svg: SVG, data: GraphData, step: number): void {
-  const fw = data.algorithms.floyd_warshall
+function drawRecurrence(svg: SVG, data: GraphData, state: FloydWarshallVisualState) {
+  svg.selectAll('.fw-recurrence').remove()
+  const group = svg.append('g').attr('class', 'fw-recurrence').attr('transform', 'translate(38,92)')
+  group.append('rect').attr('width', 515).attr('height', 245).attr('rx', 8)
+    .attr('fill', COLORS.surface2).attr('stroke', COLORS.surface3)
+  group.append('text').attr('x', 20).attr('y', 32).attr('fill', COLORS.text1)
+    .attr('font-size', 17).attr('font-weight', 700).attr('font-family', 'var(--font-sans)')
+    .text('dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])')
+  const rows = [
+    ['k · intermediate', state.k === undefined ? '—' : `${state.k} · ${data.nodes[state.k].short}`, K_COLOR],
+    ['i · source', state.i === undefined ? '—' : `${state.i} · ${data.nodes[state.i].short}`, I_COLOR],
+    ['j · destination', state.j === undefined ? '—' : `${state.j} · ${data.nodes[state.j].short}`, J_COLOR],
+    ['old dist[i][j]', formatDistance(state.oldValue), COLORS.text1],
+    ['dist[i][k] + dist[k][j]', `${formatDistance(state.firstSegment)} + ${formatDistance(state.secondSegment)}`, COLORS.text1],
+    ['candidate', formatDistance(state.candidate), COLORS.text1],
+    ['selected value', formatDistance(state.selectedValue), state.updated ? COLORS.riskLow : COLORS.text1],
+  ] as const
+  rows.forEach(([label, value, color], index) => {
+    const y = 63 + index * 25
+    group.append('text').attr('x', 20).attr('y', y).attr('fill', COLORS.text2)
+      .attr('font-size', 13).attr('font-family', 'var(--font-sans)').text(label)
+    group.append('text').attr('x', 220).attr('y', y).attr('fill', color)
+      .attr('font-size', 13).attr('font-weight', 600).attr('font-family', 'var(--font-mono)').text(value)
+  })
+}
 
-  if (step === 0) {
-    resetGraph(svg, data)
-    dimAllEdges(svg, 0.08)
-    dimAllNodes(svg, 0.4)
-    drawMatrix(svg, data, 0)
-    // Animate rows filling in
-    let row = 0
-    const interval = setInterval(() => {
-      row++
-      drawMatrix(svg, data, row)
-      if (row >= 16) clearInterval(interval)
-    }, 80)
-    return
-  }
-
-  if (step >= 1) {
-    resetGraph(svg, data)
-    dimAllEdges(svg, 0.08)
-    dimAllNodes(svg, 0.4)
-    drawMatrix(svg, data, 16)
-  }
-
-  if (step >= 2) {
-    // Color nodes by vulnerability score
-    const scores = fw.vulnerability_scores
-    const maxScore = Math.max(...scores)
-    const minScore = Math.min(...scores)
-    scores.forEach((score, nodeId) => {
-      const t = (score - minScore) / (maxScore - minScore)
-      // Low score = high connectivity = amber; high score = dim
-      const color = d3.interpolate(COLORS.amberBright, COLORS.text3)(t)
-      setNodeColor(svg, nodeId, color, 0.4 + (1 - t) * 0.6)
-    })
-  }
-
-  if (step >= 3) {
-    // Highlight most vulnerable
-    const mvId = fw.most_vulnerable
-    setNodeColor(svg, mvId, COLORS.amberBright, 1)
-    const node = data.nodes[mvId]
-    addTextLabel(svg, node.x, node.y - 22, '★ most vulnerable', COLORS.amberBright, '10px', 'fw-label')
-    // Top 3 most-connected by lowest score
-    const sorted = fw.vulnerability_scores
-      .map((s, i) => ({ s, i }))
-      .sort((a, b) => a.s - b.s)
-      .slice(0, 3)
-    sorted.forEach(({ i }) => {
-      if (i === mvId) return
-      setNodeColor(svg, i, COLORS.amberMid, 0.9)
-    })
-  }
+function enter(svg: SVG, data: GraphData, _step: number, visualState?: AlgorithmVisualState): void {
+  const state = visualState?.floydWarshall
+  if (!state) return
+  svg.selectAll('*').interrupt()
+  resetGraph(svg, data, 0)
+  dimAllEdges(svg, 0.035, 0)
+  dimAllNodes(svg, 0.14, 0)
+  if (state.i !== undefined) setNodeColor(svg, state.i, I_COLOR, 1, 0)
+  if (state.j !== undefined) setNodeColor(svg, state.j, J_COLOR, 1, 0)
+  if (state.k !== undefined) setNodeColor(svg, state.k, K_COLOR, 1, 0)
+  if (state.i !== undefined) svg.select(`#n-${state.i}`).attr('r', 21)
+  if (state.j !== undefined) svg.select(`#n-${state.j}`).attr('r', 21)
+  if (state.k !== undefined) svg.select(`#n-${state.k}`).attr('r', 24)
+  if (state.i !== undefined && state.k !== undefined) setEdgeActive(svg, state.i, state.k, I_COLOR, 3.5, 'arrow-active', 0)
+  if (state.k !== undefined && state.j !== undefined) setEdgeActive(svg, state.k, state.j, K_COLOR, 3.5, 'arrow-path', 0)
+  drawRecurrence(svg, data, state)
+  drawMatrix(svg, data, state)
 }
 
 function exit(svg: SVG, data: GraphData): void {
-  svg.selectAll('.fw-matrix, .fw-label').remove()
-  resetGraph(svg, data)
+  svg.selectAll('*').interrupt()
+  svg.selectAll('.fw-matrix, .fw-recurrence').remove()
+  resetGraph(svg, data, 0)
 }
 
 export const floydModule: AlgorithmModule = {
   steps: STEPS,
   enter,
   exit,
-  getResults: (data) => [
-    { label: 'most vulnerable node', value: data.algorithms.floyd_warshall.most_vulnerable_name.split(' ').slice(-1)[0] },
-    { label: 'reachable pairs (Gram-neg)', value: '132' },
-    { label: 'isolated pairs (cross-Gram)', value: '48' },
-    { label: 'total operations', value: '4,096' },
-  ],
+  getResults: (data) => {
+    const matrix = data.algorithms.floyd_warshall.dist_matrix
+    const reachablePairs = matrix.flat().filter(value => value !== null).length
+    return [
+      { label: 'most vulnerable node', value: data.algorithms.floyd_warshall.most_vulnerable_name },
+      { label: 'finite ordered pairs', value: String(reachablePairs) },
+      { label: 'unreachable ordered pairs', value: String(matrix.length ** 2 - reachablePairs) },
+      { label: 'inspectable operations', value: String(matrix.length ** 3) },
+    ]
+  },
 }
