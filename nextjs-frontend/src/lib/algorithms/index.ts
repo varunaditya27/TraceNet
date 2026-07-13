@@ -17,7 +17,13 @@ export interface StepDef {
 
 export interface AlgorithmModule {
   steps: StepDef[]
-  enter: (svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: GraphData, step: number, visualState?: AlgorithmVisualState) => void
+  enter: (
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+    data: GraphData,
+    step: number,
+    visualState?: AlgorithmVisualState,
+    absoluteStep?: number
+  ) => void
   exit: (svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: GraphData) => void
   getResults: (data: GraphData) => { label: string; value: string }[]
 }
