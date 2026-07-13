@@ -47,7 +47,7 @@ function drawBnbLegend(svg: SVG): void {
   legendGroup.append('text').attr('x', 24).attr('y', 54).attr('fill', COLORS.text1).attr('font-size', '11px').attr('font-family', 'var(--font-sans)').text('Hospital Intermediate')
 }
 
-function drawSubgraph(svg: SVG, data: GraphData, optimalHighlight = false): void {
+function drawSubgraph(svg: SVG, data: GraphData, optimalHighlight = false): number {
   const bnb = data.algorithms.bnb_contain
   svg.select('.g-edges').selectAll('*').remove()
   svg.select('.g-nodes').selectAll('*').remove()
@@ -112,10 +112,13 @@ function drawSubgraph(svg: SVG, data: GraphData, optimalHighlight = false): void
       .attr('font-family', 'var(--font-mono)')
       .text(shortName)
   })
+
+  return subgraphEdges.length
 }
 
-function enter(svg: SVG, data: GraphData, step: number): void {
+function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, absoluteStep?: number): void {
   const bnb = data.algorithms.bnb_contain
+  const currentAbsoluteStep = absoluteStep ?? step
 
   // Deduplicate and clean all B&B specific elements at start of step
   svg.selectAll('.bnb-tree, .bnb-cut-mark, .bnb-compare, .bnb-label').remove()
@@ -144,8 +147,8 @@ function enter(svg: SVG, data: GraphData, step: number): void {
   }
 
   if (step === 1) {
-    drawSubgraph(svg, data, false)
-    
+    const edgeCount = drawSubgraph(svg, data, false)
+
     // Draw representative B&B search tree inset derived from actual cuts
     const tg = svg.append('g').attr('class', 'bnb-tree').attr('transform', 'translate(700, 420)')
     tg.append('rect').attr('x', 0).attr('y', 0).attr('width', 380).attr('height', 200)
@@ -163,7 +166,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
       const sn = bnb.hospital_node_names[edge.src].split(' ').pop() || ''
       const tn = bnb.hospital_node_names[edge.tgt].split(' ').pop() || ''
       const edgeLabel = `${sn}➔${tn}`
-      
+
       const y = 80 + idx * 50
       treeNodes.push({
         x: 100 - idx * 20,
@@ -181,16 +184,39 @@ function enter(svg: SVG, data: GraphData, step: number): void {
       })
     })
 
+    // absoluteStep 2-8 are seven distinct narrative beats within this single phase — reveal
+    // the tree progressively instead of rendering the whole thing identically for all seven.
+    // 2 = Initialize incumbent (root only)
+    // 3 = Choose next undecided edge (both children of the first fork appear, unexplored)
+    // 4 = Explore the remove branch (left child highlighted as active)
+    // 5 = Explore the keep branch (right child highlighted as active)
+    // 6 = Evaluate a lower bound (bound annotation appears beside the keep branch)
+    // 7 = Prune a dominated branch (the keep branch now renders as pruned)
+    // 8 = Test a complete cut (the second candidate edge's fork appears)
+    const revealCount = currentAbsoluteStep <= 2 ? 1 : currentAbsoluteStep === 8 ? 5 : 3
+    const pruneVerdictShown = currentAbsoluteStep >= 7
+    const activeIdx = currentAbsoluteStep === 4 ? 1 : currentAbsoluteStep === 5 ? 2 : -1
+
     treeNodes.forEach((n, i) => {
-      tg.append('circle').attr('cx', n.x).attr('cy', n.y).attr('r', 8)
-        .attr('fill', n.pruned ? COLORS.riskHigh : n.type === 'root' ? COLORS.bfsTeal : COLORS.amberDim)
+      if (i >= revealCount) return
+      const isPrunedNow = n.pruned && pruneVerdictShown
+      const isActive = i === activeIdx
+
+      const circle = tg.append('circle').attr('cx', n.x).attr('cy', n.y)
+        .attr('r', isActive ? 10 : 8)
+        .attr('fill', isPrunedNow ? COLORS.riskHigh : n.type === 'root' ? COLORS.bfsTeal : isActive ? COLORS.amberBright : COLORS.amberDim)
+        .attr('stroke', isActive ? COLORS.amberBright : 'none')
+        .attr('stroke-width', isActive ? 2 : 0)
         .attr('opacity', 0).transition().delay(i * 100).duration(200).attr('opacity', 0.9)
-      
+      if (isActive) {
+        circle.transition().delay(300).duration(250).attr('r', 12).transition().duration(250).attr('r', 10)
+      }
+
       tg.append('text').attr('x', n.x).attr('y', n.y + 19)
         .attr('text-anchor', 'middle').attr('fill', COLORS.text2)
         .attr('font-size', '8px').attr('font-family', 'var(--font-mono)')
-        .text(n.pruned ? `${n.label} ✗` : n.label)
-      
+        .text(isPrunedNow ? `${n.label} ✗` : n.label)
+
       if (i > 0) {
         const parentIdx = i % 2 === 1 ? Math.floor(i / 2) : Math.floor((i - 1) / 2)
         const parent = treeNodes[parentIdx]
@@ -198,14 +224,28 @@ function enter(svg: SVG, data: GraphData, step: number): void {
           tg.append('line')
             .attr('x1', parent.x).attr('y1', parent.y + 8)
             .attr('x2', n.x).attr('y2', n.y - 8)
-            .attr('stroke', n.pruned ? COLORS.riskHigh : COLORS.surface3)
-            .attr('stroke-dasharray', n.pruned ? '3 2' : null)
+            .attr('stroke', isPrunedNow ? COLORS.riskHigh : COLORS.surface3)
+            .attr('stroke-dasharray', isPrunedNow ? '3 2' : null)
             .attr('stroke-width', 1.2)
         }
       }
     })
 
-    // Show subtree size badge
+    if (currentAbsoluteStep === 2) {
+      tg.append('text').attr('x', 190).attr('y', 55)
+        .attr('text-anchor', 'middle').attr('fill', COLORS.amberBright)
+        .attr('font-size', '8px').attr('font-family', 'var(--font-mono)')
+        .text(`incumbent bound = ${bnb.greedy_cost}`)
+    }
+    if (currentAbsoluteStep === 6 && treeNodes[2]) {
+      tg.append('text').attr('x', treeNodes[2].x).attr('y', treeNodes[2].y - 14)
+        .attr('text-anchor', 'middle').attr('fill', COLORS.text2)
+        .attr('font-size', '8px').attr('font-family', 'var(--font-mono)')
+        .text('bound ≥ incumbent?')
+    }
+
+    // Honest, data-derived context instead of a fabricated pruning percentage: the real
+    // search-tree statistics aren't stored anywhere, but the candidate edge count is.
     tg.append('text')
       .attr('x', 368)
       .attr('y', 18)
@@ -213,7 +253,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
       .attr('fill', COLORS.amberBright)
       .attr('font-size', '8px')
       .attr('font-family', 'var(--font-mono)')
-      .text('Pruned: 93.7% of 2^E branches')
+      .text(`${edgeCount} candidate edges → 2^${edgeCount} possible subsets`)
     return
   }
 
@@ -225,7 +265,7 @@ function enter(svg: SVG, data: GraphData, step: number): void {
        const delay = idx * 300
        d3.timeout(() => {
          const store = useDemoStore.getState()
-         if (store.selectedAlgo !== 'bnb_contain' || store.currentStep !== 2) return
+         if (store.selectedAlgo !== 'bnb_contain' || store.currentStep !== currentAbsoluteStep) return
          if (svg.select('.g-annotations').empty()) return // safety check
          
          const sp = HOSP_POSITIONS[e.src] || { x: 400, y: 300 }

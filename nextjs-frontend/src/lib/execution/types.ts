@@ -66,6 +66,13 @@ export interface FloydWarshallVisualState {
   candidate?: number | null
   selectedValue?: number | null
   updated?: boolean
+  isIntroStep?: boolean
+  isFinalStep?: boolean
+  // Some curated guided steps reuse the same (i, j, k) triple to narrate distinct concepts
+  // ("explain k" vs "select row i" vs "select column j") — these let the renderer show only
+  // the roles introduced so far, and which one should visually win when nodes coincide.
+  revealRoles?: Array<'i' | 'j' | 'k'>
+  emphasizeRole?: 'i' | 'j' | 'k'
 }
 
 export interface ExecutionProgram {

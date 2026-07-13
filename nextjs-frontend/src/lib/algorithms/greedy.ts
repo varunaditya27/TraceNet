@@ -33,8 +33,9 @@ function drawGreedyLegend(svg: SVG): void {
   legendGroup.append('text').attr('x', 24).attr('y', 54).attr('fill', COLORS.text1).attr('font-size', '11px').attr('font-family', 'var(--font-sans)').text('Removed Pathway')
 }
 
-function enter(svg: SVG, data: GraphData, step: number): void {
+function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, absoluteStep?: number): void {
   const greedy = data.algorithms.greedy_contain
+  const currentAbsoluteStep = absoluteStep ?? step
 
   // Deduplicate and clean any leftover greedy overlay elements
   svg.selectAll('.greedy-cross, .greedy-counter, .greedy-done, .greedy-legend, .greedy-status, .greedy-counter-text, .greedy-cross-mark, .greedy-ripple').remove()
@@ -68,7 +69,10 @@ function enter(svg: SVG, data: GraphData, step: number): void {
 
   if (step === 0) {
     resetGraph(svg, data)
-    dimAllEdges(svg, 0.05)
+    // absoluteStep 0 = "Define the containment objective" — focus on sources/targets only.
+    // absoluteStep 1 = "Collect candidate directed edges" — text says "all edges remain
+    // visible", so don't dim them into near-invisibility here like the other steps.
+    dimAllEdges(svg, currentAbsoluteStep === 1 ? 0.3 : 0.05)
     dimAllNodes(svg, 0.15)
     greedy.sources.forEach(id => setNodeColor(svg, id, COLORS.riskLow, 1))
     greedy.targets.forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 1))
@@ -81,11 +85,20 @@ function enter(svg: SVG, data: GraphData, step: number): void {
     dimAllNodes(svg, 0.15)
     greedy.sources.forEach(id => setNodeColor(svg, id, COLORS.riskLow, 1))
     greedy.targets.forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 1))
-    // Highlight top 5 heaviest edges in amber
-    const top5 = greedy.removed_edges.slice(0, 5)
-    top5.forEach(e => {
-      setEdgeActive(svg, e.src, e.tgt, COLORS.amberMid, 2, 'arrow-active', 300)
-    })
+
+    if (currentAbsoluteStep === 2) {
+      // "Sort by descending weight" — show the ranked candidates broadly
+      const top5 = greedy.removed_edges.slice(0, 5)
+      top5.forEach(e => {
+        setEdgeActive(svg, e.src, e.tgt, COLORS.amberDim, 1.5, 'arrow-active', 300)
+      })
+    } else {
+      // "Select the heaviest edge" — isolate the single first-ranked edge
+      const heaviest = greedy.removed_edges[0]
+      if (heaviest) {
+        setEdgeActive(svg, heaviest.src, heaviest.tgt, COLORS.amberBright, 3, 'arrow-active', 300)
+      }
+    }
     return
   }
 
@@ -96,80 +109,102 @@ function enter(svg: SVG, data: GraphData, step: number): void {
     greedy.sources.forEach(id => setNodeColor(svg, id, COLORS.riskLow, 1))
     greedy.targets.forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 1))
 
-    // Run concentric green BFS ripple from sources
-    greedy.sources.forEach(srcId => {
-      const srcNode = data.nodes[srcId]
-      if (!srcNode) return
-      
+    const drawCrossMark = (e: { src: number; tgt: number }) => {
+      const sn = data.nodes[e.src], tn = data.nodes[e.tgt]
+      if (!sn || !tn) return
+      const mx = (sn.x + tn.x) / 2
+      const my = (sn.y + tn.y) / 2
+
       svg.select('.g-annotations')
-        .append('circle')
-        .attr('class', 'greedy-ripple')
-        .attr('cx', srcNode.x)
-        .attr('cy', srcNode.y)
-        .attr('r', 16)
-        .attr('fill', 'none')
-        .attr('stroke', COLORS.riskLow)
-        .attr('stroke-width', 2)
-        .attr('opacity', 0.8)
-        .transition()
-        .duration(1200)
-        .ease(d3.easeQuadOut)
-        .attr('r', 140)
+        .append('text')
+        .attr('class', 'greedy-cross-mark')
+        .attr('x', mx).attr('y', my)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('fill', COLORS.riskHigh)
+        .attr('font-size', '14px')
+        .attr('font-family', 'var(--font-mono)')
+        .attr('font-weight', 'bold')
+        .text('×')
         .attr('opacity', 0)
-        .remove()
-    })
+        .transition().duration(200).attr('opacity', 1)
 
-    // Setup counter text container
-    const counterText = svg.select('.g-annotations')
-      .append('text')
-      .attr('class', 'greedy-counter-text')
-      .attr('x', 570).attr('y', 75)
-      .attr('text-anchor', 'middle')
-      .attr('fill', COLORS.amberMid)
-      .attr('font-size', '11px')
-      .attr('font-family', 'var(--font-mono)')
-      .text('Initializing containment check...')
+      svg.select(`#e-${e.src}-${e.tgt}`)
+        .transition().duration(500)
+        .attr('stroke', COLORS.riskHigh)
+        .attr('stroke-dasharray', '4 3')
+        .attr('opacity', 0.1)
+    }
 
-    // Animate removal of first 10 edges sequentially with live count
-    const first10 = greedy.removed_edges.slice(0, 10)
-    first10.forEach((e, idx) => {
-      const delay = idx * 220
-      d3.timeout(() => {
-        const store = useDemoStore.getState()
-        if (store.selectedAlgo !== 'greedy_contain' || store.currentStep !== 2) return
-        if (svg.select('.g-annotations').empty()) return // safety checks
-        
-        const sn = data.nodes[e.src], tn = data.nodes[e.tgt]
-        if (!sn || !tn) return
-        const mx = (sn.x + tn.x) / 2
-        const my = (sn.y + tn.y) / 2
+    // These four narrative steps (4-7) each describe a distinct moment in the removal loop —
+    // render a deterministic snapshot for each rather than always replaying the same animation.
+    // 4 = Remove the selected edge (exactly 1 removed so far)
+    // 5 = Run a reachability check (still 1 removed, plus a BFS ripple from the sources)
+    // 6 = Continue when a target remains reachable (the next ranked edge gets added)
+    // 7 = Accumulate removals (the loop has been repeating — show the counter climb toward the full result)
+    if (currentAbsoluteStep === 7) {
+      const counterText = svg.select('.g-annotations')
+        .append('text')
+        .attr('class', 'greedy-counter-text')
+        .attr('x', 570).attr('y', 75)
+        .attr('text-anchor', 'middle')
+        .attr('fill', COLORS.amberMid)
+        .attr('font-size', '11px')
+        .attr('font-family', 'var(--font-mono)')
+        .text('Accumulating removals...')
 
-        // Draw × mark
-        svg.select('.g-annotations')
-          .append('text')
-          .attr('class', 'greedy-cross-mark')
-          .attr('x', mx).attr('y', my)
-          .attr('text-anchor', 'middle')
-          .attr('dominant-baseline', 'middle')
-          .attr('fill', COLORS.riskHigh)
-          .attr('font-size', '14px')
-          .attr('font-family', 'var(--font-mono)')
-          .attr('font-weight', 'bold')
-          .text('×')
-          .attr('opacity', 0)
-          .transition().duration(200).attr('opacity', 1)
+      const shown = greedy.removed_edges.slice(0, Math.min(10, greedy.removed_edges.length))
+      shown.forEach((e, idx) => {
+        const delay = idx * 220
+        d3.timeout(() => {
+          const store = useDemoStore.getState()
+          if (store.selectedAlgo !== 'greedy_contain' || store.currentStep !== currentAbsoluteStep) return
+          if (svg.select('.g-annotations').empty()) return // safety checks
 
-        // Fade the edge
-        svg.select(`#e-${e.src}-${e.tgt}`)
-          .transition().duration(500)
-          .attr('stroke', COLORS.riskHigh)
-          .attr('stroke-dasharray', '4 3')
-          .attr('opacity', 0.1)
+          const sn = data.nodes[e.src], tn = data.nodes[e.tgt]
+          if (!sn || !tn) return
+          drawCrossMark(e)
+          counterText.text(`Removing: ${sn.short} → ${tn.short} (${idx + 1}/${shown.length} shown, total = ${greedy.n_removed})`)
+        }, delay)
+      })
+    } else {
+      const shownCount = currentAbsoluteStep === 6 ? 2 : 1
+      greedy.removed_edges.slice(0, shownCount).forEach(drawCrossMark)
 
-        // Update count text
-        counterText.text(`Removing: ${sn.short} → ${tn.short} (${idx + 1}/10 cuts shown, total = ${greedy.n_removed})`)
-      }, delay)
-    })
+      svg.select('.g-annotations')
+        .append('text')
+        .attr('class', 'greedy-counter-text')
+        .attr('x', 570).attr('y', 75)
+        .attr('text-anchor', 'middle')
+        .attr('fill', COLORS.amberMid)
+        .attr('font-size', '11px')
+        .attr('font-family', 'var(--font-mono)')
+        .text(`Removed so far: ${shownCount} edge${shownCount === 1 ? '' : 's'} — target still reachable`)
+
+      if (currentAbsoluteStep === 5) {
+        // "Run a reachability check" — the BFS/DFS traversal ripple belongs on this exact step
+        greedy.sources.forEach(srcId => {
+          const srcNode = data.nodes[srcId]
+          if (!srcNode) return
+          svg.select('.g-annotations')
+            .append('circle')
+            .attr('class', 'greedy-ripple')
+            .attr('cx', srcNode.x)
+            .attr('cy', srcNode.y)
+            .attr('r', 16)
+            .attr('fill', 'none')
+            .attr('stroke', COLORS.riskLow)
+            .attr('stroke-width', 2)
+            .attr('opacity', 0.8)
+            .transition()
+            .duration(1200)
+            .ease(d3.easeQuadOut)
+            .attr('r', 140)
+            .attr('opacity', 0)
+            .remove()
+        })
+      }
+    }
   }
 
   if (step >= 3) {
@@ -185,6 +220,38 @@ function enter(svg: SVG, data: GraphData, step: number): void {
         .transition().duration(400)
         .attr('opacity', 0.02)
     })
+
+    if (currentAbsoluteStep === 8) {
+      // "Detect successful containment" — lesson text: ripples now stop short of every
+      // target instead of reaching it, so cap each ripple's radius at the nearest target.
+      greedy.sources.forEach(srcId => {
+        const srcNode = data.nodes[srcId]
+        if (!srcNode) return
+        const nearestTargetDist = Math.min(
+          ...greedy.targets.map(tid => {
+            const t = data.nodes[tid]
+            return t ? Math.hypot(t.x - srcNode.x, t.y - srcNode.y) : Infinity
+          }),
+          140,
+        )
+        const stopRadius = Math.max(30, nearestTargetDist - 40)
+        svg.select('.g-annotations')
+          .append('circle')
+          .attr('class', 'greedy-ripple')
+          .attr('cx', srcNode.x)
+          .attr('cy', srcNode.y)
+          .attr('r', 16)
+          .attr('fill', 'none')
+          .attr('stroke', COLORS.riskLow)
+          .attr('stroke-width', 2)
+          .attr('opacity', 0.8)
+          .transition()
+          .duration(900)
+          .ease(d3.easeQuadOut)
+          .attr('r', stopRadius)
+          .attr('opacity', 0.15)
+      })
+    }
 
     // Containment complete banner
     svg.select('.g-annotations')

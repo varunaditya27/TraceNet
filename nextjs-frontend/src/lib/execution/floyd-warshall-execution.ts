@@ -63,7 +63,7 @@ export function generateFloydWarshallOperations(data: GraphData): FloydWarshallO
   return operations
 }
 
-function visual(operation: FloydWarshallOperation): FloydWarshallVisualState {
+function visual(operation: FloydWarshallOperation, isFinalStep = false): FloydWarshallVisualState {
   return {
     matrix: operation.matrix,
     k: operation.k,
@@ -75,10 +75,11 @@ function visual(operation: FloydWarshallOperation): FloydWarshallVisualState {
     candidate: operation.candidate,
     selectedValue: operation.selectedValue,
     updated: operation.updated,
+    isFinalStep,
   }
 }
 
-function operationStep(data: GraphData, operation: FloydWarshallOperation): ExecutionStep {
+function operationStep(data: GraphData, operation: FloydWarshallOperation, finalOperationIndex: number): ExecutionStep {
   const candidateText = operation.candidate === null ? '∞' : formatDistance(operation.candidate)
   return {
     id: `fw-operation-${operation.index}`,
@@ -108,7 +109,7 @@ function operationStep(data: GraphData, operation: FloydWarshallOperation): Exec
     visualState: {
       activeNode: operation.k,
       activeEdge: operation.i === operation.k || operation.k === operation.j ? undefined : [operation.i, operation.k],
-      floydWarshall: visual(operation),
+      floydWarshall: visual(operation, operation.index === finalOperationIndex),
     },
     operationIndex: operation.index,
     phaseIndex: operation.k,
@@ -119,6 +120,7 @@ export function generateFloydWarshallProgram(data: GraphData): ExecutionProgram 
   const cached = programCache.get(data)
   if (cached) return cached
   const operations = generateFloydWarshallOperations(data)
+  const finalOperationIndex = operations.length - 1
   const emptyMatrix = Array.from({ length: data.nodes.length }, () =>
     Array.from({ length: data.nodes.length }, () => null as number | null)
   )
@@ -133,17 +135,48 @@ export function generateFloydWarshallProgram(data: GraphData): ExecutionProgram 
   const nextK = operations[data.nodes.length ** 2]
   const final = operations.at(-1)!
 
-  const introVisual = (matrix: (number | null)[][], operation = first): FloydWarshallVisualState => ({ ...visual(operation), matrix })
-  const selected: Array<{ title: string; operation: FloydWarshallOperation; action: string; lines: number[]; matrix?: (number | null)[][] }> = [
-    { title: 'Define the all-pairs objective', operation: first, action: 'Find the shortest weighted path between every ordered pair of species.', lines: [1], matrix: emptyMatrix },
-    { title: 'Create an empty distance matrix', operation: first, action: `Allocate ${data.nodes.length} × ${data.nodes.length} cells.`, lines: [1], matrix: emptyMatrix },
-    { title: 'Set diagonal cells to zero', operation: first, action: 'Set dist[i][i] = 0 because no travel is needed.', lines: [1], matrix: diagonalMatrix },
-    { title: 'Copy direct edge costs', operation: first, action: 'Write each real -log(weight) edge cost into its matrix cell.', lines: [2], matrix: initialMatrix },
-    { title: 'Mark missing edges as infinity', operation: first, action: 'Leave pairs without a direct edge as infinity.', lines: [2], matrix: initialMatrix },
-    { title: 'Explain intermediate node k', operation: first, action: 'Allow one more species to appear inside candidate paths.', lines: [3] },
-    { title: 'Select the first k phase', operation: first, action: `Use ${data.nodes[first.k].short} as intermediate k.`, lines: [3] },
-    { title: 'Select source row i', operation: first, action: `Choose row ${first.i}: ${data.nodes[first.i].short}.`, lines: [4] },
-    { title: 'Select destination column j', operation: first, action: `Choose column ${first.j}: ${data.nodes[first.j].short}.`, lines: [5] },
+  const introVisual = (
+    matrix: (number | null)[][],
+    operation = first,
+    options: { isIntroStep?: boolean; revealRoles?: Array<'i' | 'j' | 'k'>; emphasizeRole?: 'i' | 'j' | 'k' } = {},
+  ): FloydWarshallVisualState => ({
+    ...visual(operation, operation.index === finalOperationIndex),
+    matrix,
+    isIntroStep: options.isIntroStep ?? false,
+    revealRoles: options.revealRoles,
+    emphasizeRole: options.emphasizeRole,
+  })
+
+  // Mirrors the graph/matrix reveal gating for the right-sidebar "state" card, so a role the
+  // current guided step hasn't introduced yet doesn't already show a concrete value there either.
+  const redactedDataStructureState = (operation: FloydWarshallOperation, roles: Array<'i' | 'j' | 'k'>) => {
+    const hasI = roles.includes('i')
+    const hasJ = roles.includes('j')
+    const hasK = roles.includes('k')
+    const hasBoth = hasI && hasJ
+    const candidateText = operation.candidate === null ? '∞' : formatDistance(operation.candidate)
+    return [
+      { key: 'k / intermediate', value: hasK ? `${operation.k} · ${data.nodes[operation.k].short}` : '—' },
+      { key: 'i / source', value: hasI ? `${operation.i} · ${data.nodes[operation.i].short}` : '—' },
+      { key: 'j / destination', value: hasJ ? `${operation.j} · ${data.nodes[operation.j].short}` : '—' },
+      { key: 'old dist[i][j]', value: hasBoth ? formatDistance(operation.oldValue) : '—' },
+      { key: 'dist[i][k]', value: hasBoth ? formatDistance(operation.firstSegment) : '—' },
+      { key: 'dist[k][j]', value: hasBoth ? formatDistance(operation.secondSegment) : '—' },
+      { key: 'candidate', value: hasBoth ? candidateText : '—' },
+      { key: 'selected', value: hasBoth ? formatDistance(operation.selectedValue) : '—' },
+      { key: 'status', value: hasBoth ? (operation.updated ? 'Updated' : 'No update') : '—' },
+    ]
+  }
+  const selected: Array<{ title: string; operation: FloydWarshallOperation; action: string; lines: number[]; matrix?: (number | null)[][]; visual?: string }> = [
+    { title: 'Define the all-pairs objective', operation: first, action: 'Find the shortest weighted path between every ordered pair of species.', lines: [1], matrix: emptyMatrix, visual: 'No species is highlighted yet — the objective covers every ordered pair equally.' },
+    { title: 'Create an empty distance matrix', operation: first, action: `Allocate ${data.nodes.length} × ${data.nodes.length} cells.`, lines: [1], matrix: emptyMatrix, visual: 'The matrix fills with empty cells; no species pair has a known distance yet.' },
+    { title: 'Set diagonal cells to zero', operation: first, action: 'Set dist[i][i] = 0 because no travel is needed.', lines: [1], matrix: diagonalMatrix, visual: 'Diagonal cells (each species to itself) turn to 0.0 in the matrix.' },
+    { title: 'Copy direct edge costs', operation: first, action: 'Write each real -log(weight) edge cost into its matrix cell.', lines: [2], matrix: initialMatrix, visual: "Matrix cells with a direct edge now show that edge's transformed cost." },
+    { title: 'Mark missing edges as infinity', operation: first, action: 'Leave pairs without a direct edge as infinity.', lines: [2], matrix: initialMatrix, visual: 'Matrix cells without a direct edge display ∞.' },
+    { title: 'Explain intermediate node k', operation: first, action: 'Allow one more species to appear inside candidate paths.', lines: [3], visual: `${data.nodes[first.k].short} turns amber as the intermediate species under discussion.` },
+    { title: 'Select the first k phase', operation: first, action: `Use ${data.nodes[first.k].short} as intermediate k.`, lines: [3], visual: `${data.nodes[first.k].short} stays amber — it is the fixed k for this entire phase.` },
+    { title: 'Select source row i', operation: first, action: `Choose row ${first.i}: ${data.nodes[first.i].short}.`, lines: [4], visual: `${data.nodes[first.i].short} now also highlights as source row i (the same node as k here).` },
+    { title: 'Select destination column j', operation: first, action: `Choose column ${first.j}: ${data.nodes[first.j].short}.`, lines: [5], visual: `${data.nodes[first.j].short} now also highlights as destination column j, completing the (i, j, k) triple.` },
     { title: 'Highlight the three recurrence cells', operation: firstUpdate, action: 'Highlight dist[i][j], dist[i][k], and dist[k][j].', lines: [6] },
     { title: 'Calculate the candidate route', operation: firstUpdate, action: 'Add the i→k and k→j segment costs.', lines: [6] },
     { title: 'Compare old and candidate values', operation: firstUpdate, action: 'Take the minimum of the old cell and candidate sum.', lines: [6] },
@@ -156,23 +189,37 @@ export function generateFloydWarshallProgram(data: GraphData): ExecutionProgram 
   ]
 
   const guided = selected.map((item, index) => {
-    const base = operationStep(data, item.operation)
+    const base = operationStep(data, item.operation, finalOperationIndex)
+    // Steps 0-4 narrate the matrix itself (no node/role has been chosen yet). Steps 5-8 all
+    // narrate the same (i=0, j=0, k=0) triple as four separate concepts ("explain k" -> "select
+    // k" -> "select row i" -> "select column j"); reveal each role only once its step introduces
+    // it. Steps 9+ use real, naturally-distinct operations and need no gating (undefined = all shown).
+    const revealRoles: Array<'i' | 'j' | 'k'> | undefined =
+      index < 5 ? [] : index === 5 || index === 6 ? ['k'] : index === 7 ? ['k', 'i'] : undefined
+    const rowAndColKnown = revealRoles === undefined || (revealRoles.includes('i') && revealRoles.includes('j'))
     return {
       ...base,
       id: `fw-guided-${index}`,
       phase: index < 5 ? 'Initialize' : index < 17 ? 'Dynamic programming' : 'Result',
       title: item.title,
       action: item.action,
+      visualExplanation: item.visual ?? base.visualExplanation,
+      calculation: rowAndColKnown ? base.calculation : undefined,
       pseudocodeLines: item.lines,
+      dataStructureState: revealRoles ? redactedDataStructureState(item.operation, revealRoles) : base.dataStructureState,
       visualState: {
         ...base.visualState,
-        floydWarshall: introVisual(item.matrix ?? item.operation.matrix, item.operation),
+        floydWarshall: introVisual(item.matrix ?? item.operation.matrix, item.operation, {
+          isIntroStep: index < 5,
+          revealRoles,
+          emphasizeRole: index === 7 ? 'i' : index === 8 ? 'j' : undefined,
+        }),
       },
     }
   })
   const program = {
     guided,
-    full: operations.map(operation => operationStep(data, operation)),
+    full: operations.map(operation => operationStep(data, operation, finalOperationIndex)),
     phaseStarts: Array.from({ length: data.nodes.length }, (_, k) => k * data.nodes.length ** 2),
   }
   programCache.set(data, program)
