@@ -3,6 +3,7 @@ import type { GraphData } from '@/lib/graph-data'
 import type { AlgorithmModule, StepDef } from './index'
 import { resetGraph, dimAllNodes, dimAllEdges, setNodeColor, setEdgeActive, addTextLabel } from '@/lib/d3-graph'
 import { COLORS } from '@/lib/constants'
+import { useDemoStore } from '@/store/demo-store'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
@@ -13,53 +14,206 @@ const STEPS: StepDef[] = [
   { label: 'Highest-risk edge', detail: 'Within Gram-positive component: E. faecium → E. faecalis has probability 0.714 — the strongest single transmission pathway in the graph.' },
 ]
 
-function enter(svg: SVG, data: GraphData, step: number): void {
+function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, absoluteStep?: number): void {
   const dijk = data.algorithms.dijkstra
 
-  if (step === 0) {
-    resetGraph(svg, data)
-    dimAllEdges(svg, 0.05)
-    dimAllNodes(svg, 0.2)
-    setNodeColor(svg, dijk.source, COLORS.amberMid, 1)
-    addTextLabel(svg, data.nodes[dijk.source].x, data.nodes[dijk.source].y - 20, 'source', COLORS.amberMid, '10px', 'dijk-label')
+  // Always remove old Dijkstra annotations/labels first to avoid piling up
+  svg.selectAll('.dijk-label').remove()
+
+  const absStep = absoluteStep ?? step
+
+  // Phase 0: Initialization (absoluteStep 0 to 3)
+  if (absStep <= 3) {
+    if (absStep === 0) {
+      // 0: Transform transfer weights
+      resetGraph(svg, data)
+      dimAllNodes(svg, 0.4)
+      dimAllEdges(svg, 0.2)
+      data.edges.forEach(edge => {
+        const srcNode = data.nodes[edge.src]
+        const tgtNode = data.nodes[edge.tgt]
+        const mx = (srcNode.x + tgtNode.x) / 2
+        const my = (srcNode.y + tgtNode.y) / 2
+        const logCost = -Math.log(edge.weight)
+        addTextLabel(svg, mx, my - 6, logCost.toFixed(2), COLORS.text2, '9px', 'dijk-label')
+      })
+    } else if (absStep === 1) {
+      // 1: Initialize all distances
+      resetGraph(svg, data)
+      dimAllEdges(svg, 0.05)
+      dimAllNodes(svg, 0.2)
+      data.nodes.forEach(node => {
+        addTextLabel(svg, node.x, node.y - 18, '∞', COLORS.text2, '11px', 'dijk-label')
+      })
+    } else if (absStep === 2) {
+      // 2: Seed the source
+      resetGraph(svg, data)
+      dimAllEdges(svg, 0.05)
+      dimAllNodes(svg, 0.2)
+      data.nodes.forEach(node => {
+        if (node.id !== dijk.source) {
+          addTextLabel(svg, node.x, node.y - 18, '∞', COLORS.text2, '11px', 'dijk-label')
+        } else {
+          setNodeColor(svg, node.id, COLORS.amberMid, 1)
+          addTextLabel(svg, node.x, node.y - 18, 'd=0', COLORS.amberBright, '11px', 'dijk-label')
+        }
+      })
+    } else if (absStep === 3) {
+      // 3: Initialize the min-heap
+      resetGraph(svg, data)
+      dimAllEdges(svg, 0.05)
+      dimAllNodes(svg, 0.2)
+      setNodeColor(svg, dijk.source, COLORS.amberMid, 1)
+      addTextLabel(svg, data.nodes[dijk.source].x, data.nodes[dijk.source].y - 18, 'd=0', COLORS.amberBright, '11px', 'dijk-label')
+
+      // Draw Priority Queue Heap box in bottom-left
+      const pqGroup = svg.select('.g-annotations')
+        .append('g')
+        .attr('class', 'dijk-label')
+        .attr('transform', 'translate(50, 520)')
+      
+      pqGroup.append('rect')
+        .attr('width', 220)
+        .attr('height', 80)
+        .attr('rx', 6)
+        .attr('fill', COLORS.surface2)
+        .attr('stroke', COLORS.surface3)
+        .attr('stroke-width', 1.5)
+      
+      pqGroup.append('text')
+        .attr('x', 12)
+        .attr('y', 25)
+        .attr('fill', COLORS.text1)
+        .attr('font-size', '12px')
+        .attr('font-family', 'var(--font-sans)')
+        .attr('font-weight', 600)
+        .text('Min-Priority Queue Heap')
+      
+      pqGroup.append('text')
+        .attr('x', 12)
+        .attr('y', 52)
+        .attr('fill', COLORS.amberBright)
+        .attr('font-size', '13px')
+        .attr('font-family', 'var(--font-mono)')
+        .text(`[(0.000, ${data.nodes[dijk.source].short})]`)
+    }
     return
   }
 
-  if (step >= 1) {
+  // Phase 1: Settlement & relaxation (absoluteStep 4 to 9)
+  if (absStep >= 4 && absStep <= 9) {
     resetGraph(svg, data)
     dimAllEdges(svg, 0.05)
-    // Color nodes by distance (settled = bright, source = amber)
+    dimAllNodes(svg, 0.2)
+
     const maxDist = Math.max(...dijk.distances.filter((d): d is number => d !== null))
     const colorScale = d3.scaleSequential([0, maxDist], d3.interpolate(COLORS.amberBright, COLORS.amberDim))
 
+    // Set source node color immediately
+    setNodeColor(svg, dijk.source, COLORS.amberMid, 1)
+    addTextLabel(svg, data.nodes[dijk.source].x, data.nodes[dijk.source].y - 18, 'd=0', COLORS.amberBright, '11px', 'dijk-label')
+
+    // Stagger colors for settled nodes
+    const settled = dijk.distances
+      .map((dist, nodeId) => ({ dist, nodeId }))
+      .filter((item): item is { dist: number; nodeId: number } => item.dist !== null && item.nodeId !== dijk.source)
+      .sort((a, b) => a.dist - b.dist)
+
+    settled.forEach((item, index) => {
+      const delay = index * 100
+      d3.timeout(() => {
+        const store = useDemoStore.getState()
+        if (store.selectedAlgo !== 'dijkstra' || store.currentStep !== absStep) return
+        if (svg.select(`#n-${item.nodeId}`).empty()) return // safety
+        
+        // Pulse node
+        svg.select(`#n-${item.nodeId}`)
+          .transition().duration(150).attr('r', 20)
+          .transition().duration(150).attr('r', 16)
+
+        setNodeColor(svg, item.nodeId, colorScale(item.dist), 1, 300)
+        addTextLabel(svg, data.nodes[item.nodeId].x, data.nodes[item.nodeId].y - 18, `d=${item.dist.toFixed(3)}`, colorScale(item.dist), '10px', 'dijk-label')
+      }, delay)
+    })
+
+    // Show infinite/unreachable nodes
+    dijk.distances.forEach((dist, nodeId) => {
+      if (dist === null) {
+        setNodeColor(svg, nodeId, COLORS.text3, 0.2)
+        addTextLabel(svg, data.nodes[nodeId].x, data.nodes[nodeId].y - 18, '∞', COLORS.text3, '11px', 'dijk-label')
+      }
+    })
+  }
+
+  // Phase 2: Highlight ESKAPE paths (absoluteStep 10)
+  if (absStep === 10) {
+    resetGraph(svg, data)
+    dimAllEdges(svg, 0.05)
+    dimAllNodes(svg, 0.2)
+
+    // Base colors
+    const maxDist = Math.max(...dijk.distances.filter((d): d is number => d !== null))
+    const colorScale = d3.scaleSequential([0, maxDist], d3.interpolate(COLORS.amberBright, COLORS.amberDim))
     dijk.distances.forEach((dist, nodeId) => {
       if (dist === null) {
         setNodeColor(svg, nodeId, COLORS.text3, 0.2)
       } else if (nodeId === dijk.source) {
         setNodeColor(svg, nodeId, COLORS.amberMid, 1)
       } else {
-        setNodeColor(svg, nodeId, colorScale(dist), 1, 400)
+        setNodeColor(svg, nodeId, colorScale(dist), 1)
       }
     })
-  }
 
-  if (step >= 2) {
     // Highlight ESKAPE paths
     const eskapeIds = Object.keys(dijk.eskape_paths)
       .map(Number)
       .filter(targetId => dijk.eskape_paths[String(targetId)]?.dist !== null)
+
     eskapeIds.forEach(targetId => {
       const pathKey = String(targetId)
       const pathData = dijk.eskape_paths[pathKey]
       if (!pathData || pathData.path.length < 2) return
       const path = pathData.path
+
       for (let i = 0; i < path.length - 1; i++) {
-        setEdgeActive(svg, path[i], path[i+1], COLORS.pathGold, 2.5, 'arrow-path', 500)
+        const edgeEl = svg.select(`#e-${path[i]}-${path[i+1]}`)
+        if (edgeEl.empty()) {
+          // Draw virtual path line
+          const srcNode = data.nodes[path[i]]
+          const tgtNode = data.nodes[path[i+1]]
+          if (!srcNode || !tgtNode) continue
+          const sr = 16, tr = 16
+          const dx = tgtNode.x - srcNode.x
+          const dy = tgtNode.y - srcNode.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist > 0) {
+            const ux = dx / dist, uy = dy / dist
+            const x1 = srcNode.x + ux * (sr + 3)
+            const y1 = srcNode.y + uy * (sr + 3)
+            const x2 = tgtNode.x - ux * (tr + 7)
+            const y2 = tgtNode.y - uy * (tr + 7)
+
+            svg.select('.g-annotations')
+              .append('line')
+              .attr('class', 'dijk-path-arc dijk-label')
+              .attr('x1', x1).attr('y1', y1)
+              .attr('x2', x2).attr('y2', y2)
+              .attr('stroke', COLORS.pathGold)
+              .attr('stroke-width', 2.5)
+              .attr('opacity', 1)
+              .attr('marker-end', 'url(#arrow-path)')
+              .attr('stroke-dasharray', '4 4')
+          }
+        } else {
+          setEdgeActive(svg, path[i], path[i+1], COLORS.pathGold, 2.5, 'arrow-path', 500)
+        }
       }
+
       // Label target
       const node = data.nodes[targetId]
       addTextLabel(svg, node.x, node.y - 20, `d=${pathData.dist?.toFixed(3)}`, COLORS.pathGold, '10px', 'dijk-label')
     })
+
     // Show unreachable ESKAPE
     ;[3, 4].forEach(id => {
       setNodeColor(svg, id, COLORS.text3, 0.15)
@@ -67,18 +221,41 @@ function enter(svg: SVG, data: GraphData, step: number): void {
     })
   }
 
-  if (step >= 3) {
-    // Highlight highest-risk: edge src→tgt and tgt→src (bidirectional) in red
+  // Phase 3: Highest-risk edge (absoluteStep 11)
+  if (absStep >= 11) {
+    resetGraph(svg, data)
+    dimAllEdges(svg, 0.05)
+    dimAllNodes(svg, 0.2)
+
+    // Highlight highest-risk edge
     const hr = dijk.highest_risk
-    setNodeColor(svg, hr.src, COLORS.riskHigh, 1)
-    setNodeColor(svg, hr.tgt, COLORS.riskHigh, 1)
-    setEdgeActive(svg, hr.src, hr.tgt, COLORS.riskHigh, 3, 'arrow-danger', 500)
-    setEdgeActive(svg, hr.tgt, hr.src, COLORS.riskHigh, 3, 'arrow-danger', 500)
-    addTextLabel(svg,
-      (data.nodes[hr.src].x + data.nodes[hr.tgt].x) / 2,
-      (data.nodes[hr.src].y + data.nodes[hr.tgt].y) / 2 - 12,
-      `p=${hr.probability.toFixed(3)}`, COLORS.riskHigh, '11px', 'dijk-label'
-    )
+    const sn = data.nodes[hr.src]
+    const tn = data.nodes[hr.tgt]
+    if (sn && tn) {
+      setNodeColor(svg, hr.src, COLORS.riskHigh, 1)
+      setNodeColor(svg, hr.tgt, COLORS.riskHigh, 1)
+      // Forward edge (exists in DOM)
+      setEdgeActive(svg, hr.src, hr.tgt, COLORS.riskHigh, 3, 'arrow-danger', 500)
+      // Reverse direction: draw a dashed arc in annotations (reverse DOM edge may not exist)
+      const dx = sn.x - tn.x, dy = sn.y - tn.y
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      if (dist > 0) {
+        const ux = dx / dist, uy = dy / dist
+        svg.select('.g-annotations')
+          .append('line')
+          .attr('class', 'dijk-label')
+          .attr('x1', tn.x + ux * 23).attr('y1', tn.y + uy * 23)
+          .attr('x2', sn.x - ux * 23).attr('y2', sn.y - uy * 23)
+          .attr('stroke', COLORS.riskHigh).attr('stroke-width', 2)
+          .attr('stroke-dasharray', '5 3').attr('opacity', 0.7)
+          .attr('marker-end', 'url(#arrow-danger)')
+      }
+      addTextLabel(svg,
+        (sn.x + tn.x) / 2,
+        (sn.y + tn.y) / 2 - 12,
+        `p=${hr.probability.toFixed(3)}`, COLORS.riskHigh, '11px', 'dijk-label'
+      )
+    }
   }
 }
 

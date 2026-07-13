@@ -72,7 +72,7 @@ function AlgorithmGraph({ data, selectedAlgo }: { data: GraphData; selectedAlgo:
     if (!svgRef.current) return
     const svg = d3.select(svgRef.current) as d3.Selection<SVGSVGElement, unknown, null, undefined>
     svg.selectAll('*').interrupt()
-    ALGORITHM_MODULES[selectedAlgo].enter(svg, data, activeStep?.phaseIndex ?? currentStep, activeStep?.visualState)
+    ALGORITHM_MODULES[selectedAlgo].enter(svg, data, activeStep?.phaseIndex ?? currentStep, activeStep?.visualState, currentStep)
   }, [activeStep, currentStep, data, selectedAlgo])
 
   const toggleFullscreen = async () => {

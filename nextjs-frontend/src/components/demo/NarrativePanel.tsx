@@ -69,17 +69,51 @@ export function NarrativePanel() {
 
         {activeTab === 'execution' && (
           <div className="lesson-section execution-section">
-            <div className="step-rail" aria-label="Execution steps">
-              {executionSteps.length <= 40 && executionSteps.map((item, index) => (
-                <button
-                  key={item.title}
-                  className={index === currentStep ? 'active' : index < currentStep ? 'complete' : ''}
-                  onClick={() => setStep(index)}
-                  title={item.title}
-                >
-                  {index + 1}
-                </button>
-              ))}
+            <div className="step-rail" aria-label="Execution steps" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {executionSteps.length <= 40 && (() => {
+                const elements: React.ReactNode[] = []
+                let lastPhase = -1
+                const PHASE_COLORS = ['#f59e0b', '#06b6d4', '#a78bfa', '#f43f5e']
+                
+                executionSteps.forEach((item, index) => {
+                  const currentPhase = item.phaseIndex ?? 0
+                  if (lastPhase !== -1 && lastPhase !== currentPhase) {
+                    elements.push(
+                      <div 
+                        key={`sep-${index}`} 
+                        style={{ 
+                          width: '1px', 
+                          height: '14px', 
+                          background: 'var(--surface-3)', 
+                          margin: '0 2px',
+                          alignSelf: 'center'
+                        }} 
+                      />
+                    )
+                  }
+                  lastPhase = currentPhase
+                  
+                  const phaseColor = PHASE_COLORS[currentPhase % PHASE_COLORS.length]
+                  
+                  elements.push(
+                    <button
+                      key={item.title}
+                      className={index === currentStep ? 'active' : index < currentStep ? 'complete' : ''}
+                      onClick={() => setStep(index)}
+                      title={`${item.title} (Phase: ${item.phase})`}
+                      style={{
+                        borderColor: index === currentStep ? phaseColor : 'var(--surface-3)',
+                        color: index === currentStep ? '#ffffff' : index < currentStep ? phaseColor : 'var(--text-3)',
+                        background: index === currentStep ? phaseColor : 'transparent',
+                        transition: 'all 200ms',
+                      }}
+                    >
+                      {index + 1}
+                    </button>
+                  )
+                })
+                return elements
+              })()}
             </div>
             <h2 className="active-step-heading">Step {currentStep + 1}: {step.title}</h2>
             <div className="step-phase">{step.phase}</div>

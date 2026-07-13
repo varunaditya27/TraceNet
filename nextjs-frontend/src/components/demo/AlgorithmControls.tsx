@@ -76,12 +76,21 @@ export function AlgorithmControls() {
               <>
                 <button onClick={() => jumpToPhase(-1)} disabled={atStart}>Previous k phase</button>
                 <button onClick={() => jumpToPhase(1)} disabled={atEnd}>Next k phase</button>
-                <label className="triple-jump">
-                  <span>Jump k/i/j</span>
-                  <input aria-label="Intermediate k" type="number" min={0} max={nodeCount - 1} value={currentK} onChange={event => jumpToTriple(Number(event.target.value), currentI, currentJ)} />
-                  <input aria-label="Source i" type="number" min={0} max={nodeCount - 1} value={currentI} onChange={event => jumpToTriple(currentK, Number(event.target.value), currentJ)} />
-                  <input aria-label="Destination j" type="number" min={0} max={nodeCount - 1} value={currentJ} onChange={event => jumpToTriple(currentK, currentI, Number(event.target.value))} />
-                </label>
+                <div className="triple-jump" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-2)', marginRight: '2px' }}>Jump (k,i,j):</span>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '11px', color: 'var(--amber-bright)' }}>
+                    <span>k</span>
+                    <input style={{ width: '38px', background: 'var(--surface-2)', border: '1px solid var(--surface-3)', borderRadius: '4px', color: 'var(--text-1)', padding: '2px', textAlign: 'center' }} type="number" min={0} max={nodeCount - 1} value={currentK} onChange={event => jumpToTriple(Number(event.target.value), currentI, currentJ)} />
+                  </label>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '11px', color: '#22d3ee' }}>
+                    <span>i</span>
+                    <input style={{ width: '38px', background: 'var(--surface-2)', border: '1px solid var(--surface-3)', borderRadius: '4px', color: 'var(--text-1)', padding: '2px', textAlign: 'center' }} type="number" min={0} max={nodeCount - 1} value={currentI} onChange={event => jumpToTriple(currentK, Number(event.target.value), currentJ)} />
+                  </label>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '11px', color: '#f472b6' }}>
+                    <span>j</span>
+                    <input style={{ width: '38px', background: 'var(--surface-2)', border: '1px solid var(--surface-3)', borderRadius: '4px', color: 'var(--text-1)', padding: '2px', textAlign: 'center' }} type="number" min={0} max={nodeCount - 1} value={currentJ} onChange={event => jumpToTriple(currentK, currentI, Number(event.target.value))} />
+                  </label>
+                </div>
               </>
             )}
             <label>
