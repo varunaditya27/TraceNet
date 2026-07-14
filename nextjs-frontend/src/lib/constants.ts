@@ -100,7 +100,7 @@ export const ALGORITHM_META: Record<AlgorithmId, {
     name: "Dijkstra's Algorithm",
     unit: 'UNIT IV',
     timeComplexity: 'O((V+E) log V)',
-    spaceComplexity: 'O(V)',
+    spaceComplexity: 'O(V+E)',
     icon: '◈',
     description: 'By converting Jaccard edge probabilities to log-distances, Dijkstra finds the highest-probability transmission path from a source species to every reachable ESKAPE pathogen.',
   },
@@ -115,7 +115,7 @@ export const ALGORITHM_META: Record<AlgorithmId, {
   greedy_contain: {
     name: 'Greedy Containment',
     unit: 'UNIT IV',
-    timeComplexity: 'O(E log E)',
+    timeComplexity: 'O(E log E + k(V+E))',
     spaceComplexity: 'O(V+E)',
     icon: '✂',
     description: 'A greedy approximation iteratively removes the highest-weight transmission edges to disconnect environmental reservoirs from ESKAPE clinical targets, trading optimality for polynomial runtime.',

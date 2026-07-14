@@ -7,12 +7,9 @@ import { useDemoStore } from '@/store/demo-store'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
-const STEPS: StepDef[] = [
-  { label: 'Identify sources and targets', detail: 'Read the computed source set and the ESKAPE targets reachable from those sources.' },
-  { label: 'Sort edges by weight', detail: 'Prioritize higher-weight directed links as candidate removals.' },
-  { label: 'Iterative edge removal', detail: 'Remove one edge at a time. Check connectivity. If sources still reach any target, continue.' },
-  { label: 'Containment achieved', detail: 'Stop when the computed source set can no longer reach the protected target set.' },
-]
+// AlgorithmModule.steps is unused dead weight — nothing in the app reads it (see
+// algorithm-lessons.ts for the live narrative content). Left empty deliberately.
+const STEPS: StepDef[] = []
 
 function drawGreedyLegend(svg: SVG): void {
   const legendGroup = svg.select('.g-annotations')
@@ -71,8 +68,8 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
     resetGraph(svg, data)
     // absoluteStep 0 = "Define the containment objective" — focus on sources/targets only.
     // absoluteStep 1 = "Collect candidate directed edges" — text says "all edges remain
-    // visible", so don't dim them into near-invisibility here like the other steps.
-    dimAllEdges(svg, currentAbsoluteStep === 1 ? 0.3 : 0.05)
+    // visible", so leave them at their natural per-weight opacity instead of dimming at all.
+    if (currentAbsoluteStep !== 1) dimAllEdges(svg, 0.05)
     dimAllNodes(svg, 0.15)
     greedy.sources.forEach(id => setNodeColor(svg, id, COLORS.riskLow, 1))
     greedy.targets.forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 1))
@@ -87,10 +84,17 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
     greedy.targets.forEach(id => setNodeColor(svg, id, COLORS.riskHigh, 1))
 
     if (currentAbsoluteStep === 2) {
-      // "Sort by descending weight" — show the ranked candidates broadly
+      // "Sort by descending weight" — reveal by rank, heaviest first, with a real
+      // width/brightness gradient so the ordering itself is visible, not just a flat set.
       const top5 = greedy.removed_edges.slice(0, 5)
-      top5.forEach(e => {
-        setEdgeActive(svg, e.src, e.tgt, COLORS.amberDim, 1.5, 'arrow-active', 300)
+      const rankColor = d3.scaleSequential([0, Math.max(1, top5.length - 1)], d3.interpolate(COLORS.amberBright, COLORS.amberDim))
+      top5.forEach((e, rank) => {
+        svg.select(`#e-${e.src}-${e.tgt}`)
+          .attr('marker-end', 'url(#arrow-active)')
+          .transition().delay(rank * 200).duration(300)
+          .attr('stroke', rankColor(rank))
+          .attr('stroke-width', 3 - rank * 0.4)
+          .attr('opacity', 1)
       })
     } else {
       // "Select the heaviest edge" — isolate the single first-ranked edge
@@ -222,19 +226,15 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
     })
 
     if (currentAbsoluteStep === 8) {
-      // "Detect successful containment" — lesson text: ripples now stop short of every
-      // target instead of reaching it, so cap each ripple's radius at the nearest target.
+      // "Detect successful containment" — a stylized, shorter-radius echo of step 5's
+      // full-reach ripple (r=140), representing that the search now stops before finding a
+      // target. Not literally computed from target distance: on this layout sources and
+      // targets sit 740-850px apart (nearly the whole canvas), so a geometrically accurate
+      // ripple would swallow most of the graph rather than read as "stopped short."
+      const stopRadius = 100
       greedy.sources.forEach(srcId => {
         const srcNode = data.nodes[srcId]
         if (!srcNode) return
-        const nearestTargetDist = Math.min(
-          ...greedy.targets.map(tid => {
-            const t = data.nodes[tid]
-            return t ? Math.hypot(t.x - srcNode.x, t.y - srcNode.y) : Infinity
-          }),
-          140,
-        )
-        const stopRadius = Math.max(30, nearestTargetDist - 40)
         svg.select('.g-annotations')
           .append('circle')
           .attr('class', 'greedy-ripple')
@@ -265,6 +265,45 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
       .attr('opacity', 0)
       .text(`✓ ${greedy.n_removed} edges removed — sources fully isolated from reachable targets`)
       .transition().duration(600).attr('opacity', 1)
+
+    if (currentAbsoluteStep >= 9) {
+      // "Stop the greedy loop" / "Report the intervention set" — call out the edges that
+      // were never even considered for removal, since containment was already achieved.
+      const removedKeys = new Set(greedy.removed_edges.map(e => `${e.src}-${e.tgt}`))
+      const survivingEdges = data.edges.filter(e => !removedKeys.has(`${e.src}-${e.tgt}`))
+      survivingEdges.forEach(e => setEdgeActive(svg, e.src, e.tgt, COLORS.bfsTeal, 2, 'arrow-default', 400))
+
+      svg.select('.g-annotations')
+        .append('text')
+        .attr('class', 'greedy-done')
+        .attr('x', 570).attr('y', 95)
+        .attr('text-anchor', 'middle')
+        .attr('fill', COLORS.bfsTeal)
+        .attr('font-size', '10px')
+        .attr('font-family', 'var(--font-mono)')
+        .text(`${survivingEdges.length} lower-ranked edge${survivingEdges.length === 1 ? '' : 's'} never needed removal`)
+    }
+
+    if (currentAbsoluteStep === 11) {
+      // "State the approximation limit" — the lesson text says "the result badge is labeled
+      // approximate," but nothing on the graph canvas previously showed that badge at all.
+      const badge = svg.select('.g-annotations')
+        .append('g')
+        .attr('class', 'greedy-done')
+        .attr('transform', 'translate(850, 20)')
+      badge.append('rect')
+        .attr('width', 150).attr('height', 32).attr('rx', 6)
+        .attr('fill', COLORS.surface2).attr('stroke', COLORS.amberBright).attr('stroke-width', 1.5)
+      badge.append('text')
+        .attr('x', 75).attr('y', 21)
+        .attr('text-anchor', 'middle')
+        .attr('fill', COLORS.amberBright)
+        .attr('font-size', '11px')
+        .attr('font-weight', 'bold')
+        .attr('font-family', 'var(--font-mono)')
+        .attr('letter-spacing', '0.05em')
+        .text('◐ APPROXIMATE')
+    }
 
     // Side-by-side gap card
     const compareGroup = svg.select('.g-annotations')

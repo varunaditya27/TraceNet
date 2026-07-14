@@ -4,6 +4,7 @@ import type { AlgorithmModule, StepDef } from './index'
 import { resetGraph, initGraph, dimAllEdges, dimAllNodes } from '@/lib/d3-graph'
 import { COLORS } from '@/lib/constants'
 import { useDemoStore } from '@/store/demo-store'
+import { computeSubgraphGreedy, getHospitalSubgraphEdges } from '@/lib/execution/bnb-subgraph-greedy'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
@@ -21,12 +22,9 @@ const HOSP_POSITIONS = [
   { x: 850, y: 470 }, // 9: C. jejuni (source)
 ]
 
-const STEPS: StepDef[] = [
-  { label: 'Load hospital subgraph', detail: 'Load the computed hospital subgraph, sources, and reachable protected targets.' },
-  { label: 'Branch & Bound search', detail: 'Enumerate edge subsets. Prune any branch where current cut size ≥ best known solution. Explore 2^E worst case but prune aggressively.' },
-  { label: 'Optimal cut identified', detail: 'Return the smallest feasible directed edge set after all better branches have been explored or safely pruned.' },
-  { label: 'Greedy vs B&B comparison', detail: 'Compare exact and greedy costs on the identical hospital subgraph.' },
-]
+// AlgorithmModule.steps is unused dead weight — nothing in the app reads it (see
+// algorithm-lessons.ts for the live narrative content). Left empty deliberately.
+const STEPS: StepDef[] = []
 
 function drawBnbLegend(svg: SVG): void {
   const legendGroup = svg.select('.g-annotations')
@@ -53,17 +51,7 @@ function drawSubgraph(svg: SVG, data: GraphData, optimalHighlight = false): numb
   svg.select('.g-nodes').selectAll('*').remove()
   svg.select('.g-labels').selectAll('*').remove()
 
-  const globalByName = new Map(data.nodes.map(node => [node.name, node.id]))
-  const localByGlobal = new Map(
-    bnb.hospital_node_names
-      .map((name, localId) => [globalByName.get(name), localId] as const)
-      .filter((entry): entry is readonly [number, number] => entry[0] !== undefined)
-  )
-  const subgraphEdges = data.edges.flatMap(edge => {
-    const src = localByGlobal.get(edge.src)
-    const tgt = localByGlobal.get(edge.tgt)
-    return src === undefined || tgt === undefined ? [] : [{ src, tgt }]
-  })
+  const subgraphEdges = getHospitalSubgraphEdges(data)
 
   // Draw only real graph edges whose endpoints are in the hospital subgraph.
   subgraphEdges.forEach(edge => {
@@ -119,6 +107,9 @@ function drawSubgraph(svg: SVG, data: GraphData, optimalHighlight = false): numb
 function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, absoluteStep?: number): void {
   const bnb = data.algorithms.bnb_contain
   const currentAbsoluteStep = absoluteStep ?? step
+  // The dataset's own `greedy_cost` isn't confined to this subgraph (see bnb-subgraph-greedy.ts)
+  // — use a real subgraph-only greedy run instead, so the B&B comparison is genuinely fair.
+  const subgraphGreedy = computeSubgraphGreedy(data)
 
   // Deduplicate and clean all B&B specific elements at start of step
   svg.selectAll('.bnb-tree, .bnb-cut-mark, .bnb-compare, .bnb-label').remove()
@@ -167,18 +158,20 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
       const tn = bnb.hospital_node_names[edge.tgt].split(' ').pop() || ''
       const edgeLabel = `${sn}➔${tn}`
 
+      // "Remove"/"Retain" refer to the edge itself (remove it from the graph vs. leave it in
+      // place) — deliberately not "include"/"exclude", which read ambiguously against "the cut".
       const y = 80 + idx * 50
       treeNodes.push({
         x: 100 - idx * 20,
         y: y,
-        label: `Exclude ${edgeLabel}`,
+        label: `Remove ${edgeLabel}`,
         pruned: false,
         type: 'branch'
       })
       treeNodes.push({
         x: 280 + idx * 20,
         y: y,
-        label: `Keep ${edgeLabel}`,
+        label: `Retain ${edgeLabel}`,
         pruned: true,
         type: 'prune'
       })
@@ -235,7 +228,7 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
       tg.append('text').attr('x', 190).attr('y', 55)
         .attr('text-anchor', 'middle').attr('fill', COLORS.amberBright)
         .attr('font-size', '8px').attr('font-family', 'var(--font-mono)')
-        .text(`incumbent bound = ${bnb.greedy_cost}`)
+        .text(`incumbent bound = ${subgraphGreedy.cost}`)
     }
     if (currentAbsoluteStep === 6 && treeNodes[2]) {
       tg.append('text').attr('x', treeNodes[2].x).attr('y', treeNodes[2].y - 14)
@@ -260,6 +253,21 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
   if (step === 2) {
     drawSubgraph(svg, data, true)
     
+    if (currentAbsoluteStep === 10) {
+      // "Exhaust all competitive branches" — the tree inset only exists during absoluteStep
+      // 2-8 (it's cleared at the top of every enter() call), so by this step there's no tree
+      // left to show "explored and pruned regions" on. Summarize the same idea in words
+      // instead of promising a visual that no longer exists.
+      svg.select('.g-annotations')
+        .append('text').attr('class', 'bnb-cut-mark')
+        .attr('x', 570).attr('y', 40)
+        .attr('text-anchor', 'middle')
+        .attr('fill', COLORS.bfsTeal)
+        .attr('font-size', '10px')
+        .attr('font-family', 'var(--font-mono)')
+        .text(`Search complete — all ${subgraphGreedy.edges.length} candidate edges explored or safely pruned`)
+    }
+
      // Show optimal removed edges sequentially with scissor animation
      bnb.optimal_removed.forEach((e, idx) => {
        const delay = idx * 300
@@ -312,7 +320,7 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
     
     gText.transition().duration(800)
       .tween('text', () => {
-        const interp = d3.interpolateNumber(0, bnb.greedy_cost)
+        const interp = d3.interpolateNumber(0, subgraphGreedy.cost)
         return t => gText.text(`${Math.round(interp(t))} edges`)
       })
 
@@ -330,7 +338,7 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
     cp.append('text').attr('x', 220).attr('y', 110)
       .attr('text-anchor', 'middle').attr('fill', COLORS.text3)
       .attr('font-size', '10px').attr('font-family', 'var(--font-mono)')
-      .text(`B&B saves ${bnb.greedy_cost - bnb.optimal_cost} directed removals — exact optimal`)
+      .text(`B&B saves ${subgraphGreedy.cost - bnb.optimal_cost} directed removals — exact optimal`)
   }
 }
 
@@ -352,10 +360,13 @@ export const bnbModule: AlgorithmModule = {
   steps: STEPS,
   enter,
   exit,
-  getResults: (data) => [
-    { label: 'optimal cut (B&B)', value: String(data.algorithms.bnb_contain.optimal_cost) },
-    { label: 'greedy cut on subgraph', value: String(data.algorithms.bnb_contain.greedy_cost) },
-    { label: 'directed removals saved', value: String(data.algorithms.bnb_contain.greedy_cost - data.algorithms.bnb_contain.optimal_cost) },
-    { label: 'solution quality', value: 'Exact optimal' },
-  ],
+  getResults: (data) => {
+    const subgraphGreedy = computeSubgraphGreedy(data)
+    return [
+      { label: 'optimal cut (B&B)', value: String(data.algorithms.bnb_contain.optimal_cost) },
+      { label: 'greedy cut on subgraph', value: String(subgraphGreedy.cost) },
+      { label: 'directed removals saved', value: String(subgraphGreedy.cost - data.algorithms.bnb_contain.optimal_cost) },
+      { label: 'solution quality', value: 'Exact optimal' },
+    ]
+  },
 }

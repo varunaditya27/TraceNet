@@ -7,12 +7,9 @@ import { useDemoStore } from '@/store/demo-store'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
-const STEPS: StepDef[] = [
-  { label: 'Initialize', detail: 'Source: K. pneumoniae (id=0). Convert Jaccard weights to log-distances: d = −log(w). Lower distance = higher probability.' },
-  { label: 'Settle nodes by distance', detail: 'Priority queue extracts closest node first. Distances finalize as nodes settle: closest = K. oxytoca (d=0.831).' },
-  { label: 'Highlight ESKAPE paths', detail: 'Shortest paths to reachable ESKAPE targets: E. cloacae (d=0.966), P. aeruginosa (d=1.897), A. baumannii (d=2.042). E. faecium & S. aureus are unreachable (other component).' },
-  { label: 'Highest-risk edge', detail: 'Within Gram-positive component: E. faecium → E. faecalis has probability 0.714 — the strongest single transmission pathway in the graph.' },
-]
+// AlgorithmModule.steps is unused dead weight — nothing in the app reads it (see
+// algorithm-lessons.ts for the live narrative content). Left empty deliberately.
+const STEPS: StepDef[] = []
 
 function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, absoluteStep?: number): void {
   const dijk = data.algorithms.dijkstra
@@ -23,7 +20,7 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
   const absStep = absoluteStep ?? step
 
   // Helper for rendering formula legend in top-right
-  const drawFormulaLegend = (formula: string, desc: string, highlightText?: string) => {
+  const drawFormulaLegend = (formula: string, desc: string, highlight = false) => {
     const legend = svg.select('.g-annotations')
       .append('g')
       .attr('class', 'dijk-label')
@@ -48,7 +45,7 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
     legend.append('text')
       .attr('x', 12)
       .attr('y', 42)
-      .attr('fill', highlightText ? COLORS.riskHigh : COLORS.amberBright)
+      .attr('fill', highlight ? COLORS.riskHigh : COLORS.amberBright)
       .attr('font-size', '13px')
       .attr('font-weight', 'bold')
       .attr('font-family', 'var(--font-mono)')
@@ -62,15 +59,20 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
       resetGraph(svg, data)
       dimAllNodes(svg, 0.4)
       dimAllEdges(svg, 0.2)
-      data.edges.forEach(edge => {
-        const srcNode = data.nodes[edge.src]
-        const tgtNode = data.nodes[edge.tgt]
-        if (!srcNode || !tgtNode) return
-        const mx = (srcNode.x + tgtNode.x) / 2
-        const my = (srcNode.y + tgtNode.y) / 2
-        const logCost = -Math.log(edge.weight)
-        addTextLabel(svg, mx, my - 6, logCost.toFixed(2), COLORS.text2, '9px', 'dijk-label')
-      })
+      // Only label the source's own edges here — labeling all 144 directed edges on a
+      // near-complete 16-node graph is unreadable clutter, and the source's edges are
+      // exactly what steps 4-8 zoom into next.
+      data.edges
+        .filter(edge => edge.src === dijk.source)
+        .forEach(edge => {
+          const srcNode = data.nodes[edge.src]
+          const tgtNode = data.nodes[edge.tgt]
+          if (!srcNode || !tgtNode) return
+          const mx = (srcNode.x + tgtNode.x) / 2
+          const my = (srcNode.y + tgtNode.y) / 2
+          const logCost = -Math.log(edge.weight)
+          addTextLabel(svg, mx, my - 6, logCost.toFixed(2), COLORS.text2, '9px', 'dijk-label')
+        })
       drawFormulaLegend('d = -log(weight)', 'Edge Weight Transformation')
     } else if (absStep === 1) {
       // 1: Initialize all distances
@@ -145,21 +147,31 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
     setNodeColor(svg, dijk.source, COLORS.amberMid, 1)
     addTextLabel(svg, data.nodes[dijk.source].x, data.nodes[dijk.source].y - 18, 'd=0', COLORS.amberBright, '11px', 'dijk-label')
 
-    // Node 8 (K. oxytoca) is target of outgoing edge
+    // Node 8 (K. oxytoca) is the target we zoom into, but relaxation really happens for
+    // every direct edge from the source — show the rest dimly so "closest unsettled node"
+    // (step 7) is visually earned rather than asserted from a single unrepresentative example.
+    const sourceEdges = data.edges.filter(edge => edge.src === dijk.source)
     const targetId = 8
+    sourceEdges.forEach(edge => {
+      if (edge.tgt !== targetId) setEdgeActive(svg, edge.src, edge.tgt, COLORS.amberDim, 1.5, 'arrow-default', 0)
+    })
+    addTextLabel(svg, data.nodes[dijk.source].x, data.nodes[dijk.source].y + 32,
+      `${sourceEdges.length} direct edges — 1 shown in detail`, COLORS.text2, '9px', 'dijk-label')
+
     const tgtNode = data.nodes[targetId]
-    if (tgtNode) {
+    const edge08 = sourceEdges.find(edge => edge.tgt === targetId)
+    if (tgtNode && edge08) {
       setNodeColor(svg, targetId, COLORS.nodeBridge, 0.8)
       addTextLabel(svg, tgtNode.x, tgtNode.y - 18, 'd=∞', COLORS.text3, '11px', 'dijk-label')
 
       // Highlight the inspected edge
       setEdgeActive(svg, dijk.source, targetId, COLORS.amberBright, 3.5, 'arrow-active', 0)
 
-      // Show edge properties
+      // Show edge properties, derived live from the real edge record (not hardcoded)
       const mx = (data.nodes[dijk.source].x + tgtNode.x) / 2
       const my = (data.nodes[dijk.source].y + tgtNode.y) / 2
-      addTextLabel(svg, mx, my - 16, 'w = 0.435', COLORS.text2, '9px', 'dijk-label')
-      addTextLabel(svg, mx, my - 4, 'cost = 0.831', COLORS.amberBright, '10px', 'dijk-label')
+      addTextLabel(svg, mx, my - 16, `w = ${edge08.weight.toFixed(3)}`, COLORS.text2, '9px', 'dijk-label')
+      addTextLabel(svg, mx, my - 4, `cost = ${edge08.dist.toFixed(3)}`, COLORS.amberBright, '10px', 'dijk-label')
     }
     return
   }
@@ -174,12 +186,13 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
 
     const targetId = 8
     const tgtNode = data.nodes[targetId]
-    if (tgtNode) {
+    const candidate = dijk.distances[targetId]
+    if (tgtNode && candidate !== null) {
       setNodeColor(svg, targetId, COLORS.nodeBridge, 0.8)
       setEdgeActive(svg, dijk.source, targetId, COLORS.amberBright, 3.5, 'arrow-active', 0)
 
-      // Candidate calculation text bubble next to the node
-      addTextLabel(svg, tgtNode.x, tgtNode.y - 18, 'Candidate: 0 + 0.831 = 0.831', COLORS.amberBright, '11px', 'dijk-label')
+      // Candidate calculation text bubble next to the node, derived from dijk.distances
+      addTextLabel(svg, tgtNode.x, tgtNode.y - 18, `Candidate: 0 + ${candidate.toFixed(3)} = ${candidate.toFixed(3)}`, COLORS.amberBright, '11px', 'dijk-label')
       addTextLabel(svg, tgtNode.x, tgtNode.y - 30, 'Current: ∞', COLORS.text3, '10px', 'dijk-label')
     }
     drawFormulaLegend('candidate = dist[u] + cost(u, v)', 'Candidate Distance Calculation')
@@ -196,10 +209,11 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
 
     const targetId = 8
     const tgtNode = data.nodes[targetId]
-    if (tgtNode) {
+    const dist8 = dijk.distances[targetId]
+    if (tgtNode && dist8 !== null) {
       // Settle/update target node in safe green
       setNodeColor(svg, targetId, COLORS.riskLow, 1)
-      addTextLabel(svg, tgtNode.x, tgtNode.y - 18, 'd=0.831 (Updated)', COLORS.riskLow, '11px', 'dijk-label')
+      addTextLabel(svg, tgtNode.x, tgtNode.y - 18, `d=${dist8.toFixed(3)} (Updated)`, COLORS.riskLow, '11px', 'dijk-label')
 
       // Pulse target node
       svg.select(`#n-${targetId}`)
@@ -208,8 +222,8 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
 
       // Active parent edge highlighted in safe green
       setEdgeActive(svg, dijk.source, targetId, COLORS.riskLow, 3.5, 'arrow-safe', 0)
+      drawFormulaLegend(`${dist8.toFixed(3)} < ∞ (Accepted)`, 'Relaxation Accepted')
     }
-    drawFormulaLegend('0.831 < ∞ (Accepted)', 'Relaxation Accepted')
     return
   }
 
@@ -224,7 +238,8 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
     // Highlight Node 8 (K. oxytoca) as popped node
     const extNodeId = 8
     const extNode = data.nodes[extNodeId]
-    if (extNode) {
+    const extDist = dijk.distances[extNodeId]
+    if (extNode && extDist !== null) {
       setNodeColor(svg, extNodeId, COLORS.amberBright, 1)
 
       // Pulse animation
@@ -232,24 +247,24 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
         .transition().duration(250).attr('r', 24)
         .transition().duration(250).attr('r', 16)
 
-      addTextLabel(svg, extNode.x, extNode.y - 18, 'd=0.831 (Popped)', COLORS.amberBright, '11px', 'dijk-label')
+      addTextLabel(svg, extNode.x, extNode.y - 18, `d=${extDist.toFixed(3)} (Popped)`, COLORS.amberBright, '11px', 'dijk-label')
+
+      // Min-Priority queue representation showing POP
+      const pqGroup = svg.select('.g-annotations')
+        .append('g')
+        .attr('class', 'dijk-label')
+        .attr('transform', 'translate(50, 520)')
+
+      pqGroup.append('rect').attr('width', 220).attr('height', 80).attr('rx', 6).attr('fill', COLORS.surface2).attr('stroke', COLORS.surface3).attr('stroke-width', 1.5)
+      pqGroup.append('text').attr('x', 12).attr('y', 25).attr('fill', COLORS.text1).attr('font-size', '12px').attr('font-family', 'var(--font-sans)').attr('font-weight', 600).text('Min-Priority Queue Heap')
+      pqGroup.append('text')
+        .attr('x', 12).attr('y', 52)
+        .attr('fill', COLORS.riskHigh)
+        .attr('font-size', '12px')
+        .attr('font-family', 'var(--font-mono)')
+        .attr('text-decoration', 'line-through')
+        .text(`POP: (${extDist.toFixed(3)}, ${extNode.short})`)
     }
-
-    // Min-Priority queue representation showing POP
-    const pqGroup = svg.select('.g-annotations')
-      .append('g')
-      .attr('class', 'dijk-label')
-      .attr('transform', 'translate(50, 520)')
-
-    pqGroup.append('rect').attr('width', 220).attr('height', 80).attr('rx', 6).attr('fill', COLORS.surface2).attr('stroke', COLORS.surface3).attr('stroke-width', 1.5)
-    pqGroup.append('text').attr('x', 12).attr('y', 25).attr('fill', COLORS.text1).attr('font-size', '12px').attr('font-family', 'var(--font-sans)').attr('font-weight', 600).text('Min-Priority Queue Heap')
-    pqGroup.append('text')
-      .attr('x', 12).attr('y', 52)
-      .attr('fill', COLORS.riskHigh)
-      .attr('font-size', '12px')
-      .attr('font-family', 'var(--font-mono)')
-      .attr('text-decoration', 'line-through')
-      .text(`POP: (0.831, ${extNode?.short || 'K. oxytoca'})`)
     return
   }
 
@@ -265,28 +280,32 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
 
     const activeId = 8
     const actNode = data.nodes[activeId]
-    if (actNode) {
+    const activeDist = dijk.distances[activeId]
+    if (actNode && activeDist !== null) {
       setNodeColor(svg, activeId, COLORS.amberMid, 1)
-      addTextLabel(svg, actNode.x, actNode.y - 18, 'd=0.831', COLORS.amberBright, '11px', 'dijk-label')
+      addTextLabel(svg, actNode.x, actNode.y - 18, `d=${activeDist.toFixed(3)}`, COLORS.amberBright, '11px', 'dijk-label')
     }
 
-    // Highlight target Node 1 (already settled with d=0.966)
+    // Highlight target Node 1 (already settled via its own direct edge from the source)
     const targetId = 1
     const tgtNode = data.nodes[targetId]
-    if (tgtNode) {
+    const targetDist = dijk.distances[targetId]
+    const edge81 = data.edges.find(edge => edge.src === activeId && edge.tgt === targetId)
+    if (actNode && tgtNode && activeDist !== null && targetDist !== null && edge81) {
       setNodeColor(svg, targetId, COLORS.amberMid, 1)
-      addTextLabel(svg, tgtNode.x, tgtNode.y - 18, 'd=0.966', COLORS.amberBright, '11px', 'dijk-label')
+      addTextLabel(svg, tgtNode.x, tgtNode.y - 18, `d=${targetDist.toFixed(3)}`, COLORS.amberBright, '11px', 'dijk-label')
 
       // Show non-improving candidate inspection edge in danger/red and dashed
       setEdgeActive(svg, activeId, targetId, COLORS.riskHigh, 3, 'arrow-danger', 0)
       svg.select(`#e-${activeId}-${targetId}`).attr('stroke-dasharray', '4 4')
 
+      const candidate = activeDist + edge81.dist
       const mx = (actNode.x + tgtNode.x) / 2
       const my = (actNode.y + tgtNode.y) / 2
-      addTextLabel(svg, mx, my - 16, 'cost = 1.012', COLORS.text2, '9px', 'dijk-label')
-      addTextLabel(svg, mx, my - 4, '0.831 + 1.012 = 1.843 ≥ 0.966', COLORS.riskHigh, '10px', 'dijk-label')
+      addTextLabel(svg, mx, my - 16, `cost = ${edge81.dist.toFixed(3)}`, COLORS.text2, '9px', 'dijk-label')
+      addTextLabel(svg, mx, my - 4, `${activeDist.toFixed(3)} + ${edge81.dist.toFixed(3)} = ${candidate.toFixed(3)} ≥ ${targetDist.toFixed(3)}`, COLORS.riskHigh, '10px', 'dijk-label')
+      drawFormulaLegend(`${candidate.toFixed(3)} ≥ ${targetDist.toFixed(3)} (Rejected)`, 'Relaxation Rejected', true)
     }
-    drawFormulaLegend('1.843 ≥ 0.966 (Rejected)', 'Relaxation Rejected', 'true')
     return
   }
 
@@ -441,19 +460,26 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
       setNodeColor(svg, hr.tgt, COLORS.riskHigh, 1)
       // Forward edge (exists in DOM)
       setEdgeActive(svg, hr.src, hr.tgt, COLORS.riskHigh, 3, 'arrow-danger', 500)
-      // Reverse direction: draw a dashed arc in annotations (reverse DOM edge may not exist)
-      const dx = sn.x - tn.x, dy = sn.y - tn.y
-      const dist = Math.sqrt(dx * dx + dy * dy)
-      if (dist > 0) {
-        const ux = dx / dist, uy = dy / dist
-        svg.select('.g-annotations')
-          .append('line')
-          .attr('class', 'dijk-label')
-          .attr('x1', tn.x + ux * 23).attr('y1', tn.y + uy * 23)
-          .attr('x2', sn.x - ux * 23).attr('y2', sn.y - uy * 23)
-          .attr('stroke', COLORS.riskHigh).attr('stroke-width', 2)
-          .attr('stroke-dasharray', '5 3').attr('opacity', 0.7)
-          .attr('marker-end', 'url(#arrow-danger)')
+      // Reverse direction: use the real reverse edge if it's already in the DOM (same
+      // check step 10 uses), only falling back to a synthetic dashed arc if it isn't.
+      const reverseEdgeEl = svg.select(`#e-${hr.tgt}-${hr.src}`)
+      if (!reverseEdgeEl.empty()) {
+        setEdgeActive(svg, hr.tgt, hr.src, COLORS.riskHigh, 2, 'arrow-danger', 500)
+        reverseEdgeEl.attr('stroke-dasharray', '5 3').attr('opacity', 0.7)
+      } else {
+        const dx = sn.x - tn.x, dy = sn.y - tn.y
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        if (dist > 0) {
+          const ux = dx / dist, uy = dy / dist
+          svg.select('.g-annotations')
+            .append('line')
+            .attr('class', 'dijk-label')
+            .attr('x1', tn.x + ux * 23).attr('y1', tn.y + uy * 23)
+            .attr('x2', sn.x - ux * 23).attr('y2', sn.y - uy * 23)
+            .attr('stroke', COLORS.riskHigh).attr('stroke-width', 2)
+            .attr('stroke-dasharray', '5 3').attr('opacity', 0.7)
+            .attr('marker-end', 'url(#arrow-danger)')
+        }
       }
       addTextLabel(svg,
         (sn.x + tn.x) / 2,
@@ -491,12 +517,13 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
       .attr('font-family', 'var(--font-sans)')
       .text(`Edge: ${dijk.highest_risk.src_name} → ${dijk.highest_risk.tgt_name}`)
     
+    const transformedCost = -Math.log(hr.probability)
     panel.append('text')
       .attr('x', 12).attr('y', 78)
       .attr('fill', COLORS.amberBright)
       .attr('font-size', '11px')
       .attr('font-family', 'var(--font-mono)')
-      .text(`Transformed Cost d = ${(-Math.log(hr.probability)).toFixed(3)}`)
+      .text(`Transformed Cost d = ${transformedCost.toFixed(3)}`)
 
     panel.append('text')
       .attr('x', 12).attr('y', 100)
@@ -504,7 +531,7 @@ function enter(svg: SVG, data: GraphData, step: number, _visualState?: any, abso
       .attr('font-size', '12px')
       .attr('font-family', 'var(--font-mono)')
       .attr('font-weight', 'bold')
-      .text(`Probability p = exp(-d) = ${hr.probability.toFixed(4)}`)
+      .text(`Probability p = exp(-d) = ${Math.exp(-transformedCost).toFixed(3)}`)
   }
 }
 
@@ -528,7 +555,7 @@ export const dijkstraModule: AlgorithmModule = {
       { label: 'ESKAPE nodes reachable from source', value: String(reachableEskape) },
       { label: 'nodes unreachable (other component)', value: String(unreachable) },
       { label: 'highest probability edge', value: `${dijk.highest_risk.probability.toFixed(3)}` },
-      { label: 'closest neighbor distance', value: closest !== undefined ? closest.toFixed(3) : '—' },
+      { label: 'closest node distance', value: closest !== undefined ? closest.toFixed(3) : '—' },
     ]
   },
 }
