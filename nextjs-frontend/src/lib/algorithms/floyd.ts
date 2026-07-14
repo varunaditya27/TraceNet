@@ -8,7 +8,9 @@ import { COLORS } from '@/lib/constants'
 
 type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 
-const STEPS: StepDef[] = [{ label: 'Deterministic all-pairs execution', detail: 'Driven by inspectable (k,i,j) snapshots.' }]
+// AlgorithmModule.steps is unused dead weight — nothing in the app reads it (see
+// floyd-warshall-execution.ts for the live narrative content). Left empty deliberately.
+const STEPS: StepDef[] = []
 const I_COLOR = COLORS.bfsTeal
 const J_COLOR = '#f472b6'
 const K_COLOR = COLORS.amberBright
@@ -309,8 +311,10 @@ function enter(svg: SVG, data: GraphData, _step: number, visualState?: Algorithm
     }
   })
 
-  if (showI && showK && state.i !== undefined && state.k !== undefined) setEdgeActive(svg, state.i, state.k, I_COLOR, 3.5, 'arrow-active', 0)
-  if (showK && showJ && state.k !== undefined && state.j !== undefined) setEdgeActive(svg, state.k, state.j, K_COLOR, 3.5, 'arrow-path', 0)
+  // Guarded against i===k / k===j (common in the degenerate first-example steps) — there's no
+  // self-loop edge in the DOM to activate, so this would otherwise be a silent no-op selection.
+  if (showI && showK && state.i !== undefined && state.k !== undefined && state.i !== state.k) setEdgeActive(svg, state.i, state.k, I_COLOR, 3.5, 'arrow-active', 0)
+  if (showK && showJ && state.k !== undefined && state.j !== undefined && state.k !== state.j) setEdgeActive(svg, state.k, state.j, K_COLOR, 3.5, 'arrow-path', 0)
 
   drawRecurrence(svg, data, state)
   drawMatrix(svg, data, state)

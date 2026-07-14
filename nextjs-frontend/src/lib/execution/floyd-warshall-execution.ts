@@ -128,8 +128,29 @@ export function generateFloydWarshallProgram(data: GraphData): ExecutionProgram 
   data.nodes.forEach(node => { diagonalMatrix[node.id][node.id] = 0 })
   const initialMatrix = createInitialDistanceMatrix(data)
   const first = operations[0]
-  const firstUpdate = operations.find(operation => operation.updated) ?? first
-  const firstReject = operations.find(operation => !operation.updated && operation.candidate !== null) ?? first
+  const firstUpdate = operations.find(operation => operation.updated)
+  const updateCount = operations.filter(operation => operation.updated).length
+
+  // This dataset's two graph components are complete digraphs, so no indirect route through
+  // a third species ever beats an existing direct edge — every single operation is a
+  // rejection (verified: updateCount === 0). Rather than force a fabricated "accept" example
+  // that contradicts its own underlying data, pick the most illustrative real rejection: the
+  // earliest k-phase, with (i, j, k) all distinct, and the largest candidate/old gap (a clean,
+  // obvious "no" rather than a near-miss rounding artifact). If a future regenerated dataset
+  // *does* contain a real update, firstUpdate is used instead and the text below adapts.
+  const distinctRejects = operations
+    .filter((op): op is FloydWarshallOperation & { candidate: number; oldValue: number } =>
+      !op.updated && op.candidate !== null && op.oldValue !== null &&
+      op.i !== op.j && op.i !== op.k && op.j !== op.k)
+    .map(op => ({ op, gap: op.candidate - op.oldValue }))
+  const bestObviousReject = [...distinctRejects].sort((a, b) => (a.op.k - b.op.k) || (b.gap - a.gap))[0]?.op
+  const closestNearMiss = [...distinctRejects].sort((a, b) => a.gap - b.gap)[0]?.op
+
+  const sampleOperation = firstUpdate ?? bestObviousReject ?? first
+  const contrastOperation = firstUpdate
+    ? (operations.find(op => !op.updated && op.candidate !== null && op !== sampleOperation) ?? first)
+    : (closestNearMiss ?? sampleOperation)
+
   const secondPair = operations[1]
   const endFirstK = operations[data.nodes.length ** 2 - 1]
   const nextK = operations[data.nodes.length ** 2]
@@ -167,9 +188,9 @@ export function generateFloydWarshallProgram(data: GraphData): ExecutionProgram 
       { key: 'status', value: hasBoth ? (operation.updated ? 'Updated' : 'No update') : '—' },
     ]
   }
-  const selected: Array<{ title: string; operation: FloydWarshallOperation; action: string; lines: number[]; matrix?: (number | null)[][]; visual?: string }> = [
-    { title: 'Define the all-pairs objective', operation: first, action: 'Find the shortest weighted path between every ordered pair of species.', lines: [1], matrix: emptyMatrix, visual: 'No species is highlighted yet — the objective covers every ordered pair equally.' },
-    { title: 'Create an empty distance matrix', operation: first, action: `Allocate ${data.nodes.length} × ${data.nodes.length} cells.`, lines: [1], matrix: emptyMatrix, visual: 'The matrix fills with empty cells; no species pair has a known distance yet.' },
+  const selected: Array<{ title: string; operation: FloydWarshallOperation; action: string; lines: number[]; matrix?: (number | null)[][]; visual?: string; reason?: string; takeaway?: string }> = [
+    { title: 'Define the all-pairs objective', operation: first, action: 'Find the shortest weighted path between every ordered pair of species.', lines: [], matrix: emptyMatrix, visual: 'No species is highlighted yet — the objective covers every ordered pair equally.', reason: `This must hold for all ${data.nodes.length}×${data.nodes.length} ordered pairs, not just ones with a direct edge.`, takeaway: 'All-pairs distance is a strictly larger goal than single-source shortest paths.' },
+    { title: 'Create an empty distance matrix', operation: first, action: `Allocate ${data.nodes.length} × ${data.nodes.length} cells.`, lines: [], matrix: emptyMatrix, visual: 'The matrix fills with empty cells; no species pair has a known distance yet.', reason: 'Every ordered pair needs its own cell before any distance can be recorded.', takeaway: 'The matrix is the single data structure the whole algorithm reads and writes.' },
     { title: 'Set diagonal cells to zero', operation: first, action: 'Set dist[i][i] = 0 because no travel is needed.', lines: [1], matrix: diagonalMatrix, visual: 'Diagonal cells (each species to itself) turn to 0.0 in the matrix.' },
     { title: 'Copy direct edge costs', operation: first, action: 'Write each real -log(weight) edge cost into its matrix cell.', lines: [2], matrix: initialMatrix, visual: "Matrix cells with a direct edge now show that edge's transformed cost." },
     { title: 'Mark missing edges as infinity', operation: first, action: 'Leave pairs without a direct edge as infinity.', lines: [2], matrix: initialMatrix, visual: 'Matrix cells without a direct edge display ∞.' },
@@ -177,15 +198,43 @@ export function generateFloydWarshallProgram(data: GraphData): ExecutionProgram 
     { title: 'Select the first k phase', operation: first, action: `Use ${data.nodes[first.k].short} as intermediate k.`, lines: [3], visual: `${data.nodes[first.k].short} stays amber — it is the fixed k for this entire phase.` },
     { title: 'Select source row i', operation: first, action: `Choose row ${first.i}: ${data.nodes[first.i].short}.`, lines: [4], visual: `${data.nodes[first.i].short} now also highlights as source row i (the same node as k here).` },
     { title: 'Select destination column j', operation: first, action: `Choose column ${first.j}: ${data.nodes[first.j].short}.`, lines: [5], visual: `${data.nodes[first.j].short} now also highlights as destination column j, completing the (i, j, k) triple.` },
-    { title: 'Highlight the three recurrence cells', operation: firstUpdate, action: 'Highlight dist[i][j], dist[i][k], and dist[k][j].', lines: [6] },
-    { title: 'Calculate the candidate route', operation: firstUpdate, action: 'Add the i→k and k→j segment costs.', lines: [6] },
-    { title: 'Compare old and candidate values', operation: firstUpdate, action: 'Take the minimum of the old cell and candidate sum.', lines: [6] },
-    { title: 'Accept an improving update', operation: firstUpdate, action: 'Replace dist[i][j] because the route through k is shorter.', lines: [6] },
-    { title: 'Retain a non-improving cell', operation: firstReject, action: 'Keep dist[i][j] because the candidate does not improve it.', lines: [6] },
+    { title: 'Highlight the three recurrence cells', operation: sampleOperation, action: 'Highlight dist[i][j], dist[i][k], and dist[k][j].', lines: [6] },
+    { title: 'Calculate the candidate route', operation: sampleOperation, action: 'Add the i→k and k→j segment costs.', lines: [6] },
+    { title: 'Compare old and candidate values', operation: sampleOperation, action: 'Take the minimum of the old cell and candidate sum.', lines: [6] },
+    {
+      title: sampleOperation.updated ? 'Accept an improving update' : 'Confirm the direct route already wins',
+      operation: sampleOperation,
+      action: sampleOperation.updated
+        ? `Replace dist[${data.nodes[sampleOperation.i].short}][${data.nodes[sampleOperation.j].short}] because the route through ${data.nodes[sampleOperation.k].short} is shorter.`
+        : `Keep dist[${data.nodes[sampleOperation.i].short}][${data.nodes[sampleOperation.j].short}] = ${formatDistance(sampleOperation.oldValue)} — routing through ${data.nodes[sampleOperation.k].short} would cost ${sampleOperation.candidate === null ? '∞' : formatDistance(sampleOperation.candidate)}, more than the existing edge.`,
+      reason: sampleOperation.updated
+        ? 'The candidate beats the previously known distance.'
+        : `${data.nodes[sampleOperation.i].short} and ${data.nodes[sampleOperation.j].short} already have a direct edge — routing through a third species only adds cost on top of it.`,
+      lines: [7],
+    },
+    {
+      title: sampleOperation.updated ? 'Retain a non-improving cell elsewhere' : 'Recognize the pattern across the whole graph',
+      operation: contrastOperation,
+      action: sampleOperation.updated
+        ? 'Keep dist[i][j] because a different candidate does not improve it.'
+        : `Even the closest near-miss in this graph — ${data.nodes[contrastOperation.i].short}→${data.nodes[contrastOperation.j].short} via ${data.nodes[contrastOperation.k].short} — still costs more than the direct edge. ${updateCount} of ${operations.length} recurrence checks ever improve a cell in this dataset.`,
+      reason: sampleOperation.updated
+        ? 'Only strict improvements are worth writing back into the matrix.'
+        : 'Both components of this graph are complete digraphs — every reachable pair already has a direct edge, so no third-species detour can ever be cheaper.',
+      lines: [7],
+    },
     { title: 'Advance to the next (i,j) pair', operation: secondPair, action: 'Increment j, then i after each row completes.', lines: [4, 5] },
     { title: 'Complete the current k phase', operation: endFirstK, action: `Finish all ${data.nodes.length ** 2} pairs for k=${endFirstK.k}.`, lines: [3, 4, 5, 6] },
     { title: 'Move to the next intermediate', operation: nextK, action: `Start k=${nextK.k}: ${data.nodes[nextK.k].short}.`, lines: [3] },
-    { title: 'Present the final matrix', operation: final, action: `After ${operations.length} operations, compare the generated matrix with the stored result.`, lines: [7, 8] },
+    {
+      title: 'Present the final matrix',
+      operation: final,
+      action: `After ${operations.length} operations, compare the generated matrix with the stored result.`,
+      reason: "Aggregating each row of the finished matrix reveals which species has the least total separation from every other species.",
+      visual: `${data.algorithms.floyd_warshall.most_vulnerable_name}'s row and column are outlined in gold — the most vulnerable species, with the lowest aggregate distance across the graph.`,
+      takeaway: "The most vulnerable species isn't the one with the single shortest edge — it's the one that stays cheaply reachable from everywhere.",
+      lines: [7, 8],
+    },
   ]
 
   const guided = selected.map((item, index) => {
@@ -203,6 +252,8 @@ export function generateFloydWarshallProgram(data: GraphData): ExecutionProgram 
       phase: index < 5 ? 'Initialize' : index < 17 ? 'Dynamic programming' : 'Result',
       title: item.title,
       action: item.action,
+      reason: item.reason ?? base.reason,
+      takeaway: item.takeaway ?? base.takeaway,
       visualExplanation: item.visual ?? base.visualExplanation,
       calculation: rowAndColKnown ? base.calculation : undefined,
       pseudocodeLines: item.lines,

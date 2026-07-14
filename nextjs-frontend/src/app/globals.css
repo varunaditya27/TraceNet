@@ -599,6 +599,11 @@ button, select {
   font-size: 13px;
 }
 
+.mode-static-label {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
 .execution-mode-row select,
 .execution-mode-row input,
 .execution-mode-row button {
