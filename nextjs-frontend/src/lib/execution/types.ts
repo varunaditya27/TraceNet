@@ -18,8 +18,22 @@ export interface AlgorithmVisualState {
   currentComponent?: number[]
   discoveredComponents?: number[][]
   revealAllComponents?: boolean
+  sccEdgeOutcome?: 'inspect' | 'discover' | 'visited'
   boyerMoore?: BoyerMooreVisualState
   floydWarshall?: FloydWarshallVisualState
+  bfs?: BFSVisualState
+}
+
+export interface BFSVisualState {
+  queue: number[]
+  distances: number[]
+  parents: (number | null)[]
+  discovered: number[]
+  processed: number[]
+  activeNode?: number
+  activeEdge?: [number, number]
+  edgeOutcome?: 'inspect' | 'discover' | 'skip'
+  complete?: boolean
 }
 
 export interface ExecutionStep {

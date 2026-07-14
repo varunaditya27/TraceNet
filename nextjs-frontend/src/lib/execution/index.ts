@@ -3,9 +3,11 @@ import type { AlgorithmId, GraphData } from '../graph-data'
 import { generateBoyerMooreProgram } from './boyer-moore-execution'
 import { generateFloydWarshallProgram } from './floyd-warshall-execution'
 import { generateSCCProgram } from './scc-execution'
+import { generateBFSProgram } from './bfs-execution'
 import type { ExecutionMode, ExecutionProgram } from './types'
 
 export function getExecutionProgram(data: GraphData, algorithmId: AlgorithmId): ExecutionProgram {
+  if (algorithmId === 'bfs') return generateBFSProgram(data)
   if (algorithmId === 'scc') return generateSCCProgram(data)
   if (algorithmId === 'boyer_moore') return generateBoyerMooreProgram(data.algorithms.boyer_moore)
   if (algorithmId === 'floyd_warshall') return generateFloydWarshallProgram(data)

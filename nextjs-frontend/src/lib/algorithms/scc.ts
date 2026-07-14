@@ -10,27 +10,22 @@ type SVG = d3.Selection<SVGSVGElement, unknown, null, undefined>
 const STEPS: StepDef[] = [{ label: 'Detailed Kosaraju execution', detail: 'Driven by deterministic DFS snapshots.' }]
 const COMPONENT_COLORS = [COLORS.sccViolet, COLORS.riskLow, COLORS.bfsTeal, COLORS.amberMid]
 
-function centroid(nodes: { x: number; y: number }[]) {
-  return {
-    cx: nodes.reduce((sum, node) => sum + node.x, 0) / nodes.length,
-    cy: nodes.reduce((sum, node) => sum + node.y, 0) / nodes.length,
-  }
-}
-
 function drawStack(svg: SVG, data: GraphData, title: string, ids: number[], x: number, y: number, color: string) {
   const group = svg.select('.g-annotations').append('g').attr('class', 'scc-stack')
   group.append('text')
     .attr('x', x).attr('y', y)
     .attr('fill', COLORS.text1).attr('font-size', 14).attr('font-weight', 600)
     .attr('font-family', 'var(--font-sans)').text(title)
-  ids.slice(-8).forEach((id, index) => {
-    const boxY = y + 12 + index * 28
+  group.append('text').attr('x', x + 150).attr('y', y).attr('text-anchor', 'end')
+    .attr('fill', COLORS.text3).attr('font-size', 10).attr('font-family', 'var(--font-mono)').text('TOP ↓')
+  ;[...ids].reverse().forEach((id, index) => {
+    const boxY = y + 10 + index * 23
     group.append('rect')
-      .attr('x', x).attr('y', boxY).attr('width', 154).attr('height', 24)
+      .attr('x', x).attr('y', boxY).attr('width', 154).attr('height', 20)
       .attr('rx', 4).attr('fill', COLORS.surface2).attr('stroke', color)
     group.append('text')
-      .attr('x', x + 8).attr('y', boxY + 16)
-      .attr('fill', COLORS.text1).attr('font-size', 12)
+      .attr('x', x + 8).attr('y', boxY + 14)
+      .attr('fill', COLORS.text1).attr('font-size', 11)
       .attr('font-family', 'var(--font-mono)').text(data.nodes[id].short)
   })
 }
@@ -58,7 +53,7 @@ function reverseEdges(svg: SVG, data: GraphData, transposed: boolean) {
         .attr('y2', target.y - uy * (targetRadius + 10))
         .attr('marker-end', 'url(#arrow-default)')
     } else {
-      line.transition().duration(550).ease(d3.easeCubicInOut)
+      line
         .attr('x1', source.x + ux * (sourceRadius + 4))
         .attr('y1', source.y + uy * (sourceRadius + 4))
         .attr('x2', target.x - ux * (targetRadius + 10))
@@ -70,27 +65,25 @@ function reverseEdges(svg: SVG, data: GraphData, transposed: boolean) {
 
 function drawComponentRegions(svg: SVG, data: GraphData, components: number[][]) {
   const layer = svg.select('.g-annotations')
+  const panel = layer.append('g').attr('class', 'scc-region')
+  const panelHeight = 38 + components.length * 38
+  panel.append('rect').attr('x', 18).attr('y', 62).attr('width', 370).attr('height', panelHeight).attr('rx', 8)
+    .attr('fill', COLORS.surface1).attr('fill-opacity', 0.96).attr('stroke', COLORS.surface3)
+  panel.append('text').attr('x', 32).attr('y', 84).attr('fill', COLORS.text1).attr('font-size', 13)
+    .attr('font-weight', 700).text('STRONGLY CONNECTED COMPONENTS')
   components.forEach((component, index) => {
     if (!component.length) return
-    const nodes = component.map(id => data.nodes[id])
-    const { cx, cy } = centroid(nodes)
-    const xs = nodes.map(node => node.x)
-    const ys = nodes.map(node => node.y)
     const color = COMPONENT_COLORS[index % COMPONENT_COLORS.length]
-    const rx = Math.max(45, (Math.max(...xs) - Math.min(...xs)) / 2 + 46)
-    const ry = Math.max(45, (Math.max(...ys) - Math.min(...ys)) / 2 + 46)
-    layer.append('ellipse')
-      .attr('class', 'scc-region')
-      .attr('cx', cx).attr('cy', cy).attr('rx', rx).attr('ry', ry)
-      .attr('fill', color).attr('fill-opacity', 0.10)
-      .attr('stroke', color).attr('stroke-width', 2.5).attr('stroke-opacity', 0.9)
-      .lower()
-    layer.append('text')
-      .attr('class', 'scc-region')
-      .attr('x', cx).attr('y', cy - ry - 10).attr('text-anchor', 'middle')
-      .attr('fill', color).attr('font-size', 14).attr('font-weight', 600)
-      .attr('font-family', 'var(--font-sans)')
-      .text(`SCC ${index + 1} · ${component.length} species`)
+    component.forEach(id => {
+      const node = data.nodes[id]
+      layer.append('circle').attr('class', 'scc-region').attr('cx', node.x).attr('cy', node.y)
+        .attr('r', nodeRadius(node) + 7).attr('fill', 'none').attr('stroke', color).attr('stroke-width', 3)
+    })
+    panel.append('circle').attr('cx', 34).attr('cy', 108 + index * 38).attr('r', 5).attr('fill', color)
+    panel.append('text').attr('x', 46).attr('y', 112 + index * 38).attr('fill', color).attr('font-size', 12)
+      .attr('font-weight', 700).text(`SCC ${index + 1} · ${component.length} species`)
+    panel.append('text').attr('x', 46).attr('y', 127 + index * 38).attr('fill', COLORS.text2).attr('font-size', 10)
+      .text(`node ids: ${component.join(', ')}`)
   })
 }
 
@@ -113,6 +106,7 @@ function enter(svg: SVG, data: GraphData, _step: number, visualState?: Algorithm
       return ROLE_COLORS[data.nodes[id].role]
     })
     .attr('opacity', 0.28)
+    .attr('stroke', COLORS.surface0).attr('stroke-width', 2)
     .attr('r', function () {
       const id = Number(d3.select(this).attr('data-id'))
       return nodeRadius(data.nodes[id])
@@ -136,9 +130,11 @@ function enter(svg: SVG, data: GraphData, _step: number, visualState?: Algorithm
   if (state.activeEdge) {
     const [src, tgt] = state.activeEdge
     const edgeId = state.graphDirection === 'transposed' ? `#e-${tgt}-${src}` : `#e-${src}-${tgt}`
-    svg.select(edgeId)
-      .attr('stroke', COLORS.bfsTeal).attr('stroke-width', 4).attr('opacity', 1)
-      .attr('marker-end', 'url(#arrow-active)')
+    const outcome = state.sccEdgeOutcome
+    const color = outcome === 'discover' ? COLORS.bfsTeal : outcome === 'visited' ? COLORS.riskHigh : COLORS.pathGold
+    const marker = outcome === 'discover' ? 'arrow-safe' : outcome === 'visited' ? 'arrow-danger' : 'arrow-path'
+    svg.select(edgeId).attr('stroke', color).attr('stroke-width', 4).attr('opacity', 1)
+      .attr('marker-end', `url(#${marker})`)
   }
 
   const modeLabel = state.graphDirection === 'transposed' ? 'TRANSPOSED GRAPH Gᵀ · ALL ARROWS REVERSED' : 'ORIGINAL DIRECTED GRAPH G'
@@ -148,6 +144,11 @@ function enter(svg: SVG, data: GraphData, _step: number, visualState?: Algorithm
     .attr('fill', state.graphDirection === 'transposed' ? COLORS.sccViolet : COLORS.bfsTeal)
     .attr('font-size', 15).attr('font-weight', 700).attr('font-family', 'var(--font-sans)')
     .text(modeLabel)
+  if (state.graphDirection === 'transposed') {
+    svg.select('.g-annotations').append('text').attr('class', 'scc-mode-label')
+      .attr('x', 570).attr('y', 55).attr('text-anchor', 'middle').attr('fill', COLORS.text2)
+      .attr('font-size', 10).text('This dataset has reciprocal links, so G and Gᵀ have the same visible edge pairs.')
+  }
 
   drawStack(svg, data, 'DFS recursion stack', state.recursionStack ?? [], 720, 70, COLORS.bfsTeal)
   drawStack(svg, data, 'Finishing-order stack', state.finishStack ?? [], 900, 70, COLORS.amberMid)
@@ -168,6 +169,9 @@ export const sccModule: AlgorithmModule = {
   exit,
   getResults: (data) => [
     { label: 'strongly connected components', value: String(data.algorithms.scc.n_components) },
-    ...data.algorithms.scc.sizes.map((size, index) => ({ label: `component ${index + 1} size`, value: String(size) })),
+    ...data.algorithms.scc.groups.map((group, index) => ({
+      label: `SCC ${index + 1}: ${group.map(id => data.nodes[id].short).join(', ')}`,
+      value: `${group.length} species`,
+    })),
   ],
 }

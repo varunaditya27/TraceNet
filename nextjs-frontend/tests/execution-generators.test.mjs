@@ -13,10 +13,22 @@ import {
   generateFloydWarshallProgram,
 } from '../src/lib/execution/floyd-warshall-execution.ts'
 import { generateSCCProgram } from '../src/lib/execution/scc-execution.ts'
+import { generateBFSProgram } from '../src/lib/execution/bfs-execution.ts'
 
 const graphData = JSON.parse(
   await readFile(new URL('../public/data/hgt_graph.json', import.meta.url), 'utf8'),
 )
+
+test('BFS execution follows FIFO order and reproduces stored distances and parents', () => {
+  const program = generateBFSProgram(graphData)
+  const final = program.full.at(-1).visualState.bfs
+  assert.deepEqual(final.distances, graphData.algorithms.bfs.distances)
+  assert.deepEqual(final.parents, graphData.algorithms.bfs.parent.map(parent => parent < 0 ? null : parent))
+  assert.deepEqual(final.queue, [])
+  assert.equal(final.complete, true)
+  assert.ok(program.full.some(step => step.visualState.bfs.edgeOutcome === 'skip'))
+  assert.ok(program.guided.length < program.full.length)
+})
 
 test('Kosaraju guided execution preserves discovery order and delays final SCC reveal', () => {
   const program = generateSCCProgram(graphData)
@@ -27,6 +39,17 @@ test('Kosaraju guided execution preserves discovery order and delays final SCC r
   assert.equal(program.guided.at(-2).visualState.revealAllComponents, true)
   assert.ok(program.full.some(step => step.visualState.graphDirection === 'transposed'))
   assert.ok(program.full.some(step => (step.visualState.currentComponent ?? []).length > 0))
+  const transposeIndex = program.full.findIndex(step => step.title === 'Construct the transposed graph')
+  const secondPassIndex = program.full.findIndex(step => step.title === 'Pop the next finish-order node')
+  assert.deepEqual(program.phaseStarts, [0, transposeIndex, secondPassIndex])
+  const clearStep = program.full.find(step => step.title === 'Clear the visited set')
+  assert.deepEqual(clearStep.visualState.visitedNodes, [])
+  assert.ok(program.full.some(step => step.title === 'Skip an assigned stack entry'))
+  assert.ok(program.full.some(step => step.title === 'Skip an already visited target'))
+  assert.ok(program.guided.every(step => step.pseudocodeLines.every(line => line >= 1 && line <= 10)))
+  const completed = program.full.filter(step => step.title === 'Complete one SCC').map(step => [...step.visualState.currentComponent].sort((a, b) => a - b))
+  const expected = graphData.algorithms.scc.groups.map(group => [...group].sort((a, b) => a - b))
+  assert.deepEqual(completed.sort((a, b) => a[0] - b[0]), expected.sort((a, b) => a[0] - b[0]))
 })
 
 test('Boyer-Moore uses a substantially shorter pattern and computes safe shifts', () => {

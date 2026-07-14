@@ -2,7 +2,8 @@ import type { AlgorithmId, GraphData } from './graph-data'
 import { generateSCCProgram } from './execution/scc-execution.ts'
 import { generateBoyerMooreProgram } from './execution/boyer-moore-execution.ts'
 import { generateFloydWarshallProgram } from './execution/floyd-warshall-execution.ts'
-import { computeSubgraphGreedy } from './execution/bnb-subgraph-greedy'
+import { generateBFSProgram } from './execution/bfs-execution.ts'
+import { computeSubgraphGreedy } from './execution/bnb-subgraph-greedy.ts'
 import type { AlgorithmVisualState, ExecutionStep } from './execution/types'
 
 export type LessonTab = 'overview' | 'execution' | 'data-structures' | 'pseudocode' | 'result'
@@ -123,6 +124,7 @@ export function buildAlgorithmLessons(data: GraphData): Record<AlgorithmId, Algo
   const sccProgram = generateSCCProgram(data)
   const boyerMooreProgram = generateBoyerMooreProgram(bm)
   const floydWarshallProgram = generateFloydWarshallProgram(data)
+  const bfsProgram = generateBFSProgram(data)
 
   return {
     bfs: {
@@ -135,22 +137,9 @@ export function buildAlgorithmLessons(data: GraphData): Record<AlgorithmId, Algo
       dataStructures: [
         { name: 'Queue', purpose: 'Holds the next discovered species to expand.', representation: 'FIFO list of node ids' },
         { name: 'Distance array', purpose: 'Stores minimum hop count; -1 means undiscovered.', representation: `[${bfs.distances.join(', ')}]` },
-        { name: 'Parent array', purpose: 'Records the discovery edge for path reconstruction.', representation: 'One predecessor per species' },
+        { name: 'Parent array', purpose: 'Records the discovery edge for path reconstruction.', representation: `[${bfs.parent.map(parent => parent ?? 'null').join(', ')}]` },
       ],
-      steps: expandedSteps('bfs', [
-        { title: 'Define reachability', action: 'Ask which species have any directed path from the source.', reason: 'BFS answers possibility and minimum hop count.', visual: 'The complete graph is visible before traversal.', state: [['source', data.nodes[bfs.source].short]], takeaway: 'Reachability is about possible transfer routes, not probability.', lines: [1], renderPhase: 0 },
-        { title: 'Initialize distances', action: 'Set every distance to -1.', reason: '-1 distinguishes undiscovered species.', visual: 'All non-source nodes are muted.', state: [['dist[*]', '-1']], takeaway: 'No species is assumed reachable before discovery.', lines: [1], renderPhase: 0 },
-        { title: 'Set the source distance', action: `Set dist[${bfs.source}] = 0.`, reason: 'The source is zero transfers from itself.', visual: 'The source turns amber and grows.', state: [[`dist[${bfs.source}]`, '0']], calculation: 'distance(source, source) = 0', takeaway: 'The source forms BFS layer zero.', lines: [2], renderPhase: 0 },
-        { title: 'Enqueue the source', action: `Push ${data.nodes[bfs.source].short} into the FIFO queue.`, reason: 'The queue controls layer-by-layer expansion.', visual: 'The source becomes the active frontier.', state: [['queue', `[${bfs.source}]`]], takeaway: 'FIFO order is what gives BFS minimum hop distances.', lines: [3], renderPhase: 0 },
-        { title: 'Dequeue the frontier', action: `Remove ${data.nodes[bfs.source].short} from the queue.`, reason: 'Its outgoing edges are next to inspect.', visual: 'The source remains active while edges dim.', state: [['dequeued', String(bfs.source)], ['queue', '[]']], takeaway: 'A dequeued node is expanded exactly once.', lines: [4, 5], renderPhase: 1 },
-        { title: 'Inspect an outgoing edge', action: `Inspect ${data.nodes[bfs.source].short} → ${data.nodes[1].short}.`, reason: 'Every outgoing edge can reveal a new reachable species.', visual: 'One directed edge becomes bright cyan.', state: [['neighbor', data.nodes[1].short], ['dist[neighbor]', String(bfs.distances[1])]], takeaway: 'Edges are considered in their directed transfer orientation.', lines: [6], renderPhase: 1 },
-        { title: 'Discover a neighbor', action: `Mark ${data.nodes[1].short} discovered and assign parent ${data.nodes[bfs.source].short}.`, reason: 'Its first discovery is its shortest hop route.', visual: 'The neighbor and parent edge activate.', state: [['parent[1]', String(bfs.source)], ['dist[1]', String(bfs.distances[1])]], calculation: 'dist[1] = dist[source] + 1 = 1', takeaway: 'The first discovered route is a minimum-hop route.', lines: [7], renderPhase: 1 },
-        { title: 'Enqueue discovered neighbors', action: `Add all ${reachable.length - 1} newly discovered species to the queue.`, reason: 'They form the next BFS layer.', visual: 'Every hop-one node appears cyan.', state: [['queue size', String(reachable.length - 1)]], takeaway: 'A whole layer is discovered before deeper exploration.', lines: [7], renderPhase: 1 },
-        { title: 'Process the remaining queue', action: 'Dequeue each hop-one species and inspect its outgoing edges.', reason: 'BFS continues until no discovered node remains unexpanded.', visual: 'Reachable nodes remain highlighted as the frontier advances.', state: [['reachable', String(reachable.length)], ['maximum hop', String(Math.max(...reachable.map(item => item.distance)))]], takeaway: 'Dense direct connectivity makes every reachable species one hop away here.', lines: [4, 5, 6, 7], renderPhase: 1 },
-        { title: 'Reject already discovered nodes', action: 'Skip neighbors whose distance is no longer -1.', reason: 'Re-enqueuing them would repeat work and cannot improve hop distance.', visual: 'Previously visited nodes retain their first parent.', state: [['duplicate discoveries', 'ignored']], takeaway: 'Visited state keeps BFS linear in V + E.', lines: [7], renderPhase: 1 },
-        { title: 'Mark unreachable species', action: `Leave ${unreachable.length} species at distance -1.`, reason: 'No directed path from the source reached them.', visual: 'Unreachable nodes receive an infinity label.', state: [['unreachable', unreachable.map(item => data.nodes[item.id].short).join(', ')]], takeaway: 'Infinity is a topological separation under the current graph threshold.', lines: [8], renderPhase: 2 },
-        { title: 'Publish and interpret BFS', action: 'Return distances and parent links.', reason: 'Together they explain both minimum hops and one route.', visual: 'Every finite distance is shown beside its node.', state: [['reachable', `${reachable.length}/${data.meta.n_nodes}`], ['queue', '[]']], takeaway: 'The final map shows possibility of spread, not likelihood.', lines: [8], renderPhase: 3 },
-      ]),
+      steps: bfsProgram.guided.map(executionStepToLessonStep),
       pseudocode: [
         { line: 1, code: 'dist[*] <- -1; parent[*] <- null' },
         { line: 2, code: 'dist[source] <- 0' },
@@ -164,7 +153,7 @@ export function buildAlgorithmLessons(data: GraphData): Record<AlgorithmId, Algo
       timeComplexity: 'O(V + E)',
       spaceComplexity: 'O(V)',
       limitations: ['Ignores edge strength and transfer probability.', 'Reachability depends on the graph threshold and direction.', 'A possible path is not evidence that transfer will occur.'],
-      resultInterpretation: `${reachable.length} of ${data.meta.n_nodes} species are reachable from ${bfs.source_name}. The ${unreachable.length} unreachable species form a disconnected resistance-sharing region under this dataset.`,
+      resultInterpretation: `${reachable.length} of ${data.meta.n_nodes} species are reachable from ${bfs.source_name}. The remaining ${unreachable.length} species form a separate directed-reachability component in this dataset; it is not a strict Gram-type boundary.`,
     },
     scc: {
       id: 'scc',
@@ -180,18 +169,21 @@ export function buildAlgorithmLessons(data: GraphData): Record<AlgorithmId, Algo
       ],
       steps: sccProgram.guided.map(executionStepToLessonStep),
       pseudocode: [
-        { line: 1, code: 'for each unvisited vertex u: DFS1(u)' },
-        { line: 2, code: 'DFS1 pushes u after all descendants finish' },
-        { line: 3, code: 'GT <- transpose(G)' },
-        { line: 4, code: 'clear visited' },
-        { line: 5, code: 'while finish stack is not empty:' },
-        { line: 6, code: '  if pop() is unvisited: DFS2 on GT and emit one component' },
-        { line: 7, code: 'return component labels' },
+        { line: 1, code: 'for each vertex u:' },
+        { line: 2, code: '  if u is unvisited: DFS1(u)' },
+        { line: 3, code: 'DFS1 visits each outgoing neighbor recursively' },
+        { line: 4, code: 'after descendants finish: finish.push(u)' },
+        { line: 5, code: 'GT <- transpose(G)' },
+        { line: 6, code: 'clear visited' },
+        { line: 7, code: 'while finish stack is not empty:' },
+        { line: 8, code: '  u <- finish.pop(); if unvisited: DFS2(GT, u)' },
+        { line: 9, code: '  DFS2 assigns every reached node to the current SCC' },
+        { line: 10, code: 'return component labels' },
       ],
       timeComplexity: 'O(V + E)',
       spaceComplexity: 'O(V + E)',
       limitations: ['Components describe topology, not transfer frequency.', 'SCC boundaries can change when low-weight edges are filtered.', 'Large SCCs do not imply all direct pairwise transfers exist.'],
-      resultInterpretation: `TraceNet finds ${scc.n_components} SCCs of sizes ${scc.sizes.join(' and ')}. Resistance can circulate within either group, but no round trip crosses the boundary.`,
+      resultInterpretation: `TraceNet finds ${scc.n_components} SCCs of sizes ${scc.sizes.join(' and ')}. Nodes are mutually reachable within each group; distinct SCCs cannot be mutually reachable, although SCCs may have one-way paths between them in a general directed graph. In this dataset, the two SCCs have no cross-component link.`,
     },
     topo_sort: {
       id: 'topo_sort',
