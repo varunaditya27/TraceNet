@@ -13,7 +13,7 @@ Run order (after the other 4 scripts):
 
 Input files:
     data/hgt_graph.txt          — 16-node HGT species graph
-    data/arg_dag.txt            — 10-node ARG dependency DAG
+    data/arg_dag.txt            — 16-node branched ARG dependency DAG
     data/arg_sequences.fasta    — 6 target ARG sequences for Boyer-Moore
     data/hospital_subgraph.txt  — 10-node hospital subgraph for B&B
 
@@ -232,7 +232,7 @@ def boyer_moore_search(text: str, pattern: str):
         if j < 0:
             matches.append(s)
             shift_char = text[s + m] if s + m < n else "\0"
-            s += m - bad_char.get(shift_char, -1) - 1
+            s += max(1, m - bad_char.get(shift_char, -1))
         else:
             s += max(1, j - bad_char.get(text[s + j], -1))
     return matches, comparisons
@@ -441,8 +441,11 @@ def main():
     print("[4/8] Boyer-Moore on NDM-1 sequence...")
     bm_target = "blaNDM1"
     gene_name, seq = fasta.get(bm_target, ("NDM-1", "ATGGATTTCGGG"))
-    pattern = seq[:30]             # 30bp primer-length query
-    text = seq + seq               # doubled sequence for guaranteed demo match
+    # Use a short internal query rather than the prefix. This forces the visual
+    # search to demonstrate mismatches and safe shifts before its first match.
+    pattern_start = 137
+    pattern = seq[pattern_start:pattern_start + 18]
+    text = seq                     # real single FASTA record; no synthetic duplication
     bm_matches, bm_comps   = boyer_moore_search(text, pattern)
     naive_matches, naive_comps = naive_search(text, pattern)
     speedup = round(naive_comps / bm_comps, 2) if bm_comps > 0 else None
@@ -560,6 +563,7 @@ def main():
             },
             "boyer_moore": {
                 "pattern": pattern,
+                "pattern_source_offset": pattern_start,
                 "pattern_length": len(pattern),
                 "gene_name": gene_name,
                 "parent_text": text,

@@ -86,7 +86,7 @@ export const ALGORITHM_META: Record<AlgorithmId, {
     timeComplexity: 'O(V+E)',
     spaceComplexity: 'O(V)',
     icon: '→',
-    description: "Kahn's BFS-based algorithm orders the ARG dependency DAG, revealing the sequence in which resistance genes are clinically acquired during an infection.",
+    description: "Kahn's queue-based algorithm produces one ordering consistent with the modeled ARG dependency constraints; it does not claim a unique clinical acquisition chronology.",
   },
   boyer_moore: {
     name: 'Boyer-Moore Search',

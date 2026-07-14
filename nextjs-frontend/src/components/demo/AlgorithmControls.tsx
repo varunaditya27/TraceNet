@@ -2,13 +2,13 @@
 
 import { useDemoStore } from '@/store/demo-store'
 
-const SPEEDS = [0.5, 1, 1.5, 2]
+const SPEEDS = [0.5, 1, 1.5, 2, 5, 10]
 
 // Only these algorithms have a genuinely distinct "full execution" trace generator
 // (src/lib/execution/index.ts). Everything else falls back to `full: guided` — an
 // identical array — so offering the toggle there would let a user pick a "mode" that
 // changes nothing.
-const ALGOS_WITH_DISTINCT_FULL_MODE = new Set(['scc', 'boyer_moore', 'floyd_warshall'])
+const ALGOS_WITH_DISTINCT_FULL_MODE = new Set(['bfs', 'scc', 'topo_sort', 'boyer_moore', 'floyd_warshall'])
 
 export function AlgorithmControls() {
   const {

@@ -23,7 +23,7 @@ Run:    python preprocessing/build_arg_dag.py
 
 import os
 
-# ── ARG family nodes (10 total) ───────────────────────────────────────────────
+# ── ARG family nodes (16 total) ───────────────────────────────────────────────
 # Order defines the zero-based index used in edge declarations below.
 
 NODES = [
@@ -36,7 +36,13 @@ NODES = [
     "blaOXA48",  # 6 — OXA-48 carbapenemase; enabled after CTX-M selection pressure
     "blaNDM1",   # 7 — NDM-1 metallo-beta-lactamase; pan-resistance to all beta-lactams
     "mcr1",      # 8 — MCR-1 colistin resistance; last-resort antibiotic
-    "vanA",      # 9 — vancomycin resistance (Gram-positive); isolated node in this DAG
+    "vanA",      # 9 — vancomycin resistance; starts a separate Gram-positive branch
+    "qnrS1",     # 10 — plasmid-mediated quinolone resistance
+    "ermB",      # 11 — macrolide-lincosamide resistance
+    "fosA3",     # 12 — fosfomycin resistance frequently co-carried with ESBL genes
+    "catA1",     # 13 — chloramphenicol resistance cassette
+    "dfrA12",    # 14 — trimethoprim resistance integron cassette
+    "arr3",      # 15 — rifampicin resistance integron cassette
 ]
 
 # ── Edges: (src_idx, tgt_idx) ─────────────────────────────────────────────────
@@ -52,10 +58,21 @@ EDGES = [
     (6, 7),  # blaOXA48→ blaNDM1  : NDM co-occurs with OXA-48 on carbapenem-resistant plasmids
     (4, 7),  # aac6Ib  → blaNDM1  : aminoglycoside + carbapenem resistance co-acquired
     (5, 8),  # blaCTXM → mcr1     : colistin resistance selected after ESBL treatment failure
+    (1, 14), # sul1    → dfrA12   : class-1 integrons commonly carry both cassettes
+    (10, 14),# qnrS1   → dfrA12   : quinolone and trimethoprim resistance co-selection
+    (9, 11), # vanA    → ermB     : Gram-positive multidrug resistance branch
+    (2, 12), # blaTEM  → fosA3    : ESBL plasmids frequently co-carry fosA3
+    (4, 12), # aac6Ib  → fosA3    : aminoglycoside/fosfomycin co-resistance branch
+    (14, 5), # dfrA12  → blaCTXM  : integron background converges on ESBL acquisition
+    (12, 6), # fosA3   → blaOXA48 : fosfomycin resistance precedes this carbapenem branch
+    (13, 15),# catA1   → arr3     : multidrug integron cassette branch
+    (12, 15),# fosA3   → arr3     : two branches converge at rifampicin resistance
+    (8, 7),  # mcr1    → blaNDM1  : last-resort resistance branches converge at NDM-1
 ]
 
-# Expected topological order (one valid answer):
-# tetM → sul1 → blaTEM → blaSHV → aac6Ib → blaCTXM → blaOXA48 → blaNDM1 → mcr1 (vanA isolated)
+# The exact deterministic order is produced by Kahn's FIFO queue using node-index
+# order for initial ties. The graph deliberately contains parallel branches and
+# convergence points so the visualization is not merely a chain.
 
 OUTPUT = "data/arg_dag.txt"
 
@@ -78,7 +95,7 @@ def main():
     print(f"\nEdges:")
     for src, tgt in EDGES:
         print(f"  {NODES[src]} → {NODES[tgt]}")
-    print(f"\nExpected topo order: tetM → sul1 → blaTEM → blaSHV → aac6Ib → blaCTXM → blaOXA48 → blaNDM1 → mcr1  (vanA isolated)")
+    print("\nUse the C++/frontend Kahn implementation to compute the deterministic FIFO order.")
 
 
 if __name__ == "__main__":

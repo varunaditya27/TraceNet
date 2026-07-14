@@ -23,7 +23,12 @@ std::vector<int> boyerMooreSearch(const std::string& text, const std::string& pa
         }
         if (j < 0) {
             matches.push_back(static_cast<int>(shift));
-            shift += 1;
+            if (shift + pattern.size() < text.size()) {
+                const unsigned char next = static_cast<unsigned char>(text[shift + pattern.size()]);
+                shift += static_cast<std::size_t>(std::max(1, static_cast<int>(pattern.size()) - last[next]));
+            } else {
+                shift += 1;
+            }
         } else {
             const unsigned char mismatch = static_cast<unsigned char>(text[shift + j]);
             shift += static_cast<std::size_t>(std::max(1, j - last[mismatch]));

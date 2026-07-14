@@ -46,6 +46,7 @@ export interface TopoResult {
 
 export interface BMResult {
   pattern: string
+  pattern_source_offset?: number
   pattern_length: number
   gene_name: string
   parent_text: string

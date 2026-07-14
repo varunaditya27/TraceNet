@@ -2,7 +2,7 @@ import type { GraphData } from '../graph-data'
 import type { AlgorithmVisualState, ExecutionProgram, ExecutionStep, GraphDirection } from './types'
 
 interface SCCEvent {
-  kind: 'root' | 'enter' | 'inspect' | 'discover' | 'backtrack' | 'finish' | 'transpose' | 'pop' | 'assign' | 'component'
+  kind: 'intro' | 'root' | 'enter' | 'inspect' | 'discover' | 'visited-edge' | 'backtrack' | 'finish' | 'transpose' | 'clear' | 'pop' | 'skip-pop' | 'assign' | 'component'
   direction: GraphDirection
   activeNode?: number
   activeEdge?: [number, number]
@@ -11,6 +11,7 @@ interface SCCEvent {
   finishStack: number[]
   currentComponent: number[]
   discoveredComponents: number[][]
+  edgeOutcome?: 'inspect' | 'discover' | 'visited'
 }
 
 const programCache = new WeakMap<GraphData, ExecutionProgram>()
@@ -25,6 +26,7 @@ function snapshot(
   finishStack: number[],
   currentComponent: number[],
   discoveredComponents: number[][],
+  edgeOutcome?: SCCEvent['edgeOutcome'],
 ): SCCEvent {
   return {
     kind,
@@ -36,6 +38,7 @@ function snapshot(
     finishStack: [...finishStack],
     currentComponent: [...currentComponent],
     discoveredComponents: discoveredComponents.map(component => [...component]),
+    edgeOutcome,
   }
 }
 
@@ -55,16 +58,18 @@ export function generateSCCEvents(data: GraphData): SCCEvent[] {
   const finishStack: number[] = []
   const components: number[][] = []
 
+  events.push(snapshot('intro', 'original', undefined, undefined, visited, recursionStack, finishStack, [], components))
+
   const dfs1 = (node: number) => {
     visited.add(node)
     recursionStack.push(node)
     events.push(snapshot('enter', 'original', node, undefined, visited, recursionStack, finishStack, [], components))
     for (const neighbor of adjacency[node]) {
-      events.push(snapshot('inspect', 'original', node, [node, neighbor], visited, recursionStack, finishStack, [], components))
+      events.push(snapshot('inspect', 'original', node, [node, neighbor], visited, recursionStack, finishStack, [], components, 'inspect'))
       if (!visited.has(neighbor)) {
-        events.push(snapshot('discover', 'original', neighbor, [node, neighbor], visited, recursionStack, finishStack, [], components))
+        events.push(snapshot('discover', 'original', neighbor, [node, neighbor], visited, recursionStack, finishStack, [], components, 'discover'))
         dfs1(neighbor)
-      }
+      } else events.push(snapshot('visited-edge', 'original', node, [node, neighbor], visited, recursionStack, finishStack, [], components, 'visited'))
     }
     recursionStack.pop()
     events.push(snapshot('backtrack', 'original', node, undefined, visited, recursionStack, finishStack, [], components))
@@ -81,6 +86,7 @@ export function generateSCCEvents(data: GraphData): SCCEvent[] {
 
   events.push(snapshot('transpose', 'transposed', undefined, undefined, visited, [], finishStack, [], components))
   visited.clear()
+  events.push(snapshot('clear', 'transposed', undefined, undefined, visited, [], finishStack, [], components))
 
   const dfs2 = (node: number, component: number[]) => {
     visited.add(node)
@@ -88,8 +94,11 @@ export function generateSCCEvents(data: GraphData): SCCEvent[] {
     component.push(node)
     events.push(snapshot('assign', 'transposed', node, undefined, visited, recursionStack, finishStack, component, components))
     for (const neighbor of transpose[node]) {
-      events.push(snapshot('inspect', 'transposed', node, [node, neighbor], visited, recursionStack, finishStack, component, components))
-      if (!visited.has(neighbor)) dfs2(neighbor, component)
+      events.push(snapshot('inspect', 'transposed', node, [node, neighbor], visited, recursionStack, finishStack, component, components, 'inspect'))
+      if (!visited.has(neighbor)) {
+        events.push(snapshot('discover', 'transposed', neighbor, [node, neighbor], visited, recursionStack, finishStack, component, components, 'discover'))
+        dfs2(neighbor, component)
+      } else events.push(snapshot('visited-edge', 'transposed', node, [node, neighbor], visited, recursionStack, finishStack, component, components, 'visited'))
     }
     recursionStack.pop()
     events.push(snapshot('backtrack', 'transposed', node, undefined, visited, recursionStack, finishStack, component, components))
@@ -98,7 +107,10 @@ export function generateSCCEvents(data: GraphData): SCCEvent[] {
   while (finishStack.length) {
     const node = finishStack.pop()!
     events.push(snapshot('pop', 'transposed', node, undefined, visited, recursionStack, finishStack, [], components))
-    if (visited.has(node)) continue
+    if (visited.has(node)) {
+      events.push(snapshot('skip-pop', 'transposed', node, undefined, visited, recursionStack, finishStack, [], components))
+      continue
+    }
     const component: number[] = []
     dfs2(node, component)
     components.push(component)
@@ -119,6 +131,7 @@ function visual(event: SCCEvent, revealAllComponents = false): AlgorithmVisualSt
     currentComponent: event.currentComponent,
     discoveredComponents: event.discoveredComponents,
     revealAllComponents,
+    sccEdgeOutcome: event.edgeOutcome,
   }
 }
 
@@ -128,16 +141,20 @@ function eventStep(data: GraphData, event: SCCEvent, index: number): ExecutionSt
     ? `${data.nodes[event.activeEdge[0]].short} → ${data.nodes[event.activeEdge[1]].short}`
     : 'none'
   const descriptions: Record<SCCEvent['kind'], [string, string, string, number[]]> = {
-    root: ['Select an unvisited DFS root', `Choose ${nodeName} because it has not been visited.`, 'Every disconnected DFS tree needs its own root.', [1, 2]],
+    intro: ['Define mutual reachability', 'Inspect the original directed graph before traversal begins.', 'An SCC contains nodes that can all reach one another.', [1]],
+    root: ['Select an unvisited DFS root', `Choose ${nodeName} because it has not been visited.`, 'Every unvisited DFS tree needs its own root.', [1, 2]],
     enter: ['Enter a DFS call', `Mark ${nodeName} visited and push it onto the recursion stack.`, 'The recursion stack records the active directed path.', [2, 3]],
-    inspect: ['Inspect an outgoing edge', `Test ${edgeName}.`, 'DFS must examine every outgoing edge once.', [4, 5]],
-    discover: ['Discover a new node', `The edge reaches an unvisited node, so recurse into ${nodeName}.`, 'Following an unvisited neighbor extends the DFS tree.', [5, 6]],
-    backtrack: ['Backtrack from a node', `All outgoing edges of ${nodeName} are complete; remove it from the recursion stack.`, 'DFS returns only after every descendant is handled.', [7]],
-    finish: ['Push onto finishing stack', `Push ${nodeName} after its DFS subtree finishes.`, 'Postorder finish times determine the second-pass root order.', [8]],
-    transpose: ['Construct the transposed graph', 'Reverse every directed edge to form Gᵀ.', 'SCC membership is preserved, while movement between components reverses.', [9]],
-    pop: ['Pop the next finish-order node', `Pop ${nodeName} from the finishing stack.`, 'The maximum remaining finish time is the next safe second-pass root candidate.', [10, 11]],
-    assign: ['Assign a node to the current SCC', `Visit ${nodeName} in Gᵀ and add it to the current component.`, 'The second DFS cannot escape the SCC selected by finish order.', [12, 13]],
-    component: ['Complete one SCC', `Finish the current component containing ${event.currentComponent.length} nodes.`, 'Every member is mutually reachable in the original graph.', [14]],
+    inspect: ['Inspect an outgoing edge', `Test ${edgeName}.`, 'DFS examines each outgoing edge.', [3]],
+    discover: ['Discover a new node', `Recurse into ${nodeName}.`, 'The target has not yet been visited.', [3]],
+    'visited-edge': ['Skip an already visited target', `Do not recurse through ${edgeName}.`, 'The target is already part of this DFS traversal.', [3]],
+    backtrack: ['Backtrack from a node', `Remove ${nodeName} from the recursion stack.`, 'Every outgoing edge and descendant is complete.', [4]],
+    finish: ['Push onto finishing stack', `Push ${nodeName} after its DFS subtree finishes.`, 'Finish order determines second-pass roots.', [4]],
+    transpose: ['Construct the transposed graph', 'Reverse every directed edge to form Gᵀ.', 'SCC membership is preserved while inter-component direction reverses.', [5]],
+    clear: ['Clear the visited set', 'Reset visited before the second DFS pass.', 'Pass 2 must traverse nodes independently of pass 1.', [6]],
+    pop: ['Pop the next finish-order node', `Pop ${nodeName} from the finishing stack.`, 'The highest remaining finish time is the next root candidate.', [7, 8]],
+    'skip-pop': ['Skip an assigned stack entry', `${nodeName} already belongs to a discovered SCC.`, 'Starting another DFS would duplicate an existing component.', [8]],
+    assign: ['Assign a node to the current SCC', `Visit ${nodeName} in Gᵀ and add it to the current component.`, 'Finish order prevents this DFS from entering another SCC.', [8, 9]],
+    component: ['Complete one SCC', `Finish the current component containing ${event.currentComponent.length} nodes.`, 'Every member is mutually reachable in the original graph.', [10]],
   }
   const [title, action, reason, pseudocodeLines] = descriptions[event.kind]
   return {
@@ -173,7 +190,8 @@ export function generateSCCProgram(data: GraphData): ExecutionProgram {
   const cached = programCache.get(data)
   if (cached) return cached
   const events = generateSCCEvents(data)
-  const firstRoot = findEvent(events, event => event.kind === 'root', 0)
+  const intro = findEvent(events, event => event.kind === 'intro', 0)
+  const firstRoot = findEvent(events, event => event.kind === 'root', 1)
   const firstEnter = findEvent(events, event => event.kind === 'enter', 1)
   const firstInspect = findEvent(events, event => event.kind === 'inspect', 2)
   const firstDiscover = findEvent(events, event => event.kind === 'discover', 3)
@@ -181,14 +199,15 @@ export function generateSCCProgram(data: GraphData): ExecutionProgram {
   const firstFinish = findEvent(events, event => event.kind === 'finish', 5)
   const finalFirstPass = [...events].reverse().find(event => event.direction === 'original' && event.kind === 'finish') ?? firstFinish
   const transpose = findEvent(events, event => event.kind === 'transpose', 6)
+  const clear = findEvent(events, event => event.kind === 'clear', 7)
   const firstPop = findEvent(events, event => event.kind === 'pop', 7)
   const firstAssign = findEvent(events, event => event.kind === 'assign', 8)
   const firstComponent = findEvent(events, event => event.kind === 'component', 9)
   const secondComponent = [...events].reverse().find(event => event.kind === 'component') ?? firstComponent
 
   const guidedEvents = [
-    firstRoot,
-    firstRoot,
+    intro,
+    intro,
     firstRoot,
     firstEnter,
     firstInspect,
@@ -196,8 +215,8 @@ export function generateSCCProgram(data: GraphData): ExecutionProgram {
     firstBacktrack,
     firstFinish,
     finalFirstPass,
-    finalFirstPass,
     transpose,
+    clear,
     firstPop,
     firstAssign,
     firstComponent,
@@ -216,12 +235,12 @@ export function generateSCCProgram(data: GraphData): ExecutionProgram {
     'Push a node onto the finishing stack',
     'Complete the finishing-order stack',
     'Construct the transposed graph',
-    'Reverse every arrowhead',
+    'Clear visited for pass 2',
     'Pop the highest-finish node',
     'Run DFS on the transposed graph',
-    'Assign the first component',
+    'Complete the first component',
     'Repeat for remaining stack entries',
-    'Display all strongly connected regions',
+    'Confirm component membership',
     'Interpret resistance circulation',
   ]
 
@@ -230,34 +249,36 @@ export function generateSCCProgram(data: GraphData): ExecutionProgram {
     return {
       ...base,
       id: `scc-guided-${index}`,
-      phase: index < 9 ? 'Pass 1: finishing order' : index < 12 ? 'Transpose' : 'Pass 2: components',
+      phase: index < 9 ? 'Pass 1: finishing order' : index < 11 ? 'Transpose' : 'Pass 2: components',
       title: titles[index],
       action: index === 0
         ? 'Use directed paths to ask whether each pair of nodes can reach one another.'
         : index === 1
           ? 'Read every arrow in its original transfer direction before traversal begins.'
-          : index === 10
-            ? 'Move each arrowhead to the opposite endpoint; the edge geometry stays fixed.'
+          : index === 9
+            ? 'Reverse every arrow and form the transposed graph Gᵀ.'
             : index === 15
-              ? 'Reveal every component only after the second DFS has discovered it.'
-              : index === 16
+              ? 'Read each colored node ring against the SCC membership panel.'
+            : index === 16
                 ? 'Relate each completed SCC to a resistance-sharing region.'
                 : base.action,
       reason: index === 0
         ? 'Nodes belong to the same SCC when every node can reach every other node through directed paths.'
         : base.reason,
       visualExplanation: index === 15 || index === 16
-        ? 'Colored regions now appear around all components. No final component colors were shown during the first DFS.'
+        ? 'Colored node rings and the membership panel identify every component without overlapping boundaries.'
         : base.visualExplanation,
       takeaway: index === 16
         ? 'A resistance gene entering one SCC can circulate among its members, while crossing between SCCs requires a boundary path.'
         : base.takeaway,
       visualState: visual(event, index >= 15),
-      phaseIndex: index < 9 ? 0 : index < 12 ? 1 : 2,
+      phaseIndex: index < 9 ? 0 : index < 11 ? 1 : 2,
     }
   })
 
-  const program = { guided, full: events.map((event, index) => eventStep(data, event, index)), phaseStarts: [0, 9, 12] }
+  const transposeIndex = events.findIndex(event => event.kind === 'transpose')
+  const secondPassIndex = events.findIndex(event => event.kind === 'pop')
+  const program = { guided, full: events.map((event, index) => eventStep(data, event, index)), phaseStarts: [0, transposeIndex, secondPassIndex] }
   programCache.set(data, program)
   return program
 }

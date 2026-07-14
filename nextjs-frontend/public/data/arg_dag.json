@@ -1,24 +1,23 @@
 {
   "nodes": [
-    {"id": 0, "name": "tetM"},
-    {"id": 1, "name": "sul1"},
-    {"id": 2, "name": "blaTEM"},
-    {"id": 3, "name": "blaSHV"},
-    {"id": 4, "name": "aac6Ib"},
-    {"id": 5, "name": "blaCTXM"},
-    {"id": 6, "name": "blaOXA48"},
-    {"id": 7, "name": "blaNDM1"},
-    {"id": 8, "name": "mcr1"},
-    {"id": 9, "name": "vanA"}
+    {"id": 0, "name": "tetM"}, {"id": 1, "name": "sul1"},
+    {"id": 2, "name": "blaTEM"}, {"id": 3, "name": "blaSHV"},
+    {"id": 4, "name": "aac6Ib"}, {"id": 5, "name": "blaCTXM"},
+    {"id": 6, "name": "blaOXA48"}, {"id": 7, "name": "blaNDM1"},
+    {"id": 8, "name": "mcr1"}, {"id": 9, "name": "vanA"},
+    {"id": 10, "name": "qnrS1"}, {"id": 11, "name": "ermB"},
+    {"id": 12, "name": "fosA3"}, {"id": 13, "name": "catA1"},
+    {"id": 14, "name": "dfrA12"}, {"id": 15, "name": "arr3"}
   ],
   "edges": [
-    {"src": 0, "tgt": 2},
-    {"src": 1, "tgt": 2},
-    {"src": 2, "tgt": 3},
-    {"src": 3, "tgt": 5},
-    {"src": 5, "tgt": 6},
-    {"src": 6, "tgt": 7},
-    {"src": 4, "tgt": 7},
-    {"src": 5, "tgt": 8}
+    {"src": 0, "tgt": 2}, {"src": 1, "tgt": 2},
+    {"src": 2, "tgt": 3}, {"src": 3, "tgt": 5},
+    {"src": 5, "tgt": 6}, {"src": 6, "tgt": 7},
+    {"src": 4, "tgt": 7}, {"src": 5, "tgt": 8},
+    {"src": 1, "tgt": 14}, {"src": 10, "tgt": 14},
+    {"src": 9, "tgt": 11}, {"src": 2, "tgt": 12},
+    {"src": 4, "tgt": 12}, {"src": 14, "tgt": 5},
+    {"src": 12, "tgt": 6}, {"src": 13, "tgt": 15},
+    {"src": 12, "tgt": 15}, {"src": 8, "tgt": 7}
   ]
 }

@@ -18,8 +18,36 @@ export interface AlgorithmVisualState {
   currentComponent?: number[]
   discoveredComponents?: number[][]
   revealAllComponents?: boolean
+  sccEdgeOutcome?: 'inspect' | 'discover' | 'visited'
   boyerMoore?: BoyerMooreVisualState
   floydWarshall?: FloydWarshallVisualState
+  bfs?: BFSVisualState
+  topo?: TopoVisualState
+}
+
+export interface TopoVisualState {
+  indegrees: number[]
+  queue: number[]
+  output: number[]
+  processedEdges: Array<[number, number]>
+  activeNode?: number
+  activeEdge?: [number, number]
+  edgeOutcome?: 'inspect' | 'decrement' | 'unlock'
+  initialized?: boolean
+  complete?: boolean
+  hasCycle?: boolean
+}
+
+export interface BFSVisualState {
+  queue: number[]
+  distances: number[]
+  parents: (number | null)[]
+  discovered: number[]
+  processed: number[]
+  activeNode?: number
+  activeEdge?: [number, number]
+  edgeOutcome?: 'inspect' | 'discover' | 'skip'
+  complete?: boolean
 }
 
 export interface ExecutionStep {
@@ -41,6 +69,7 @@ export interface ExecutionStep {
 }
 
 export interface BoyerMooreVisualState {
+  geneName?: string
   parentText: string
   pattern: string
   alignment: number
@@ -53,6 +82,12 @@ export interface BoyerMooreVisualState {
   comparisons: number
   matches: number[]
   badCharacterTable: Record<string, number>
+  stage?: 'load' | 'pattern' | 'table' | 'align' | 'search' | 'result'
+  nextAlignment?: number
+  matchedPatternIndices?: number[]
+  naiveComparisons?: number
+  speedup?: number
+  patternSourceOffset?: number
 }
 
 export interface FloydWarshallVisualState {
