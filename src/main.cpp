@@ -58,7 +58,11 @@ int main(int argc, char* argv[]) {
         pattern = "ACGT";
         std::cout << "\nBoyer-Moore demo using sample DNA text.\n";
     } else {
-        pattern = text.substr(0, std::min<std::size_t>(20, text.size()));
+        constexpr std::size_t patternStart = 137;
+        constexpr std::size_t patternLength = 18;
+        pattern = patternStart < text.size()
+            ? text.substr(patternStart, std::min(patternLength, text.size() - patternStart))
+            : text.substr(0, std::min(patternLength, text.size()));
         std::cout << "\nBoyer-Moore demo using data/arg_sequences.fasta.\n";
     }
     const std::vector<int> matches = boyerMooreSearch(text, pattern);

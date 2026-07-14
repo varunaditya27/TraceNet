@@ -35,7 +35,7 @@ Graph makePathGraph() {
 int main() {
     Graph dag;
     assert(dag.loadFromFile("data/arg_dag.txt"));
-    assert(dag.V == 10 && dag.E == 8);
+    assert(dag.V == 16 && dag.E == 18);
     const std::vector<int> topo = topologicalSort(dag);
     assert(topo.size() == static_cast<std::size_t>(dag.V));
     std::vector<int> position(dag.V);

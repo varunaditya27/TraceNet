@@ -22,6 +22,20 @@ export interface AlgorithmVisualState {
   boyerMoore?: BoyerMooreVisualState
   floydWarshall?: FloydWarshallVisualState
   bfs?: BFSVisualState
+  topo?: TopoVisualState
+}
+
+export interface TopoVisualState {
+  indegrees: number[]
+  queue: number[]
+  output: number[]
+  processedEdges: Array<[number, number]>
+  activeNode?: number
+  activeEdge?: [number, number]
+  edgeOutcome?: 'inspect' | 'decrement' | 'unlock'
+  initialized?: boolean
+  complete?: boolean
+  hasCycle?: boolean
 }
 
 export interface BFSVisualState {
@@ -55,6 +69,7 @@ export interface ExecutionStep {
 }
 
 export interface BoyerMooreVisualState {
+  geneName?: string
   parentText: string
   pattern: string
   alignment: number
@@ -67,6 +82,12 @@ export interface BoyerMooreVisualState {
   comparisons: number
   matches: number[]
   badCharacterTable: Record<string, number>
+  stage?: 'load' | 'pattern' | 'table' | 'align' | 'search' | 'result'
+  nextAlignment?: number
+  matchedPatternIndices?: number[]
+  naiveComparisons?: number
+  speedup?: number
+  patternSourceOffset?: number
 }
 
 export interface FloydWarshallVisualState {

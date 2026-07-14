@@ -3,6 +3,7 @@ import { generateSCCProgram } from './execution/scc-execution.ts'
 import { generateBoyerMooreProgram } from './execution/boyer-moore-execution.ts'
 import { generateFloydWarshallProgram } from './execution/floyd-warshall-execution.ts'
 import { generateBFSProgram } from './execution/bfs-execution.ts'
+import { generateTopoProgram } from './execution/topo-execution.ts'
 import { computeSubgraphGreedy } from './execution/bnb-subgraph-greedy.ts'
 import type { AlgorithmVisualState, ExecutionStep } from './execution/types'
 
@@ -125,6 +126,7 @@ export function buildAlgorithmLessons(data: GraphData): Record<AlgorithmId, Algo
   const boyerMooreProgram = generateBoyerMooreProgram(bm)
   const floydWarshallProgram = generateFloydWarshallProgram(data)
   const bfsProgram = generateBFSProgram(data)
+  const topoProgram = generateTopoProgram(data)
 
   return {
     bfs: {
@@ -189,28 +191,15 @@ export function buildAlgorithmLessons(data: GraphData): Record<AlgorithmId, Algo
       id: 'topo_sort',
       title: 'Topological Sort',
       question: 'What valid order can describe acquisition of the ARG dependency network?',
-      traceNetRole: 'Turns directional gene dependencies into an interpretable acquisition sequence.',
+      traceNetRole: 'Turns directional gene dependencies into one valid constraint-respecting order without claiming a unique clinical chronology.',
       intuition: 'Any gene with no unmet prerequisite can be emitted. Removing it may unlock the next genes.',
       inputDescription: `A separate ARG DAG with ${topo.dag_nodes.length} genes and ${topo.dag_edges.length} dependency edges.`,
       dataStructures: [
-        { name: 'In-degree array', purpose: 'Counts unmet prerequisites for every ARG.', representation: 'One integer per gene' },
-        { name: 'Zero-degree queue', purpose: 'Holds genes currently valid to emit.', representation: 'FIFO queue used by Kahn’s algorithm' },
+        { name: 'In-degree array', purpose: 'Counts unmet prerequisites for every ARG.', representation: `[${topo.dag_nodes.map((_, id) => topo.dag_edges.filter(([, target]) => target === id).length).join(', ')}]` },
+        { name: 'Zero-degree queue', purpose: 'Holds genes currently valid to emit.', representation: `Initial FIFO: ${topo.dag_nodes.filter((_, id) => !topo.dag_edges.some(([, target]) => target === id)).join(' → ')}` },
         { name: 'Output order', purpose: 'Stores a valid dependency-respecting sequence.', representation: topo.order.join(' -> ') },
       ],
-      steps: expandedSteps('topo_sort', [
-        { title: 'Switch to the ARG dependency DAG', action: 'Load gene nodes and prerequisite edges.', reason: 'Topological sort applies to the acyclic ARG graph.', visual: 'Species fade out and gene nodes appear.', state: [['genes', String(topo.dag_nodes.length)], ['edges', String(topo.dag_edges.length)]], takeaway: 'TraceNet uses a different graph for gene acquisition order.', lines: [1], renderPhase: 0 },
-        { title: 'Allocate the in-degree array', action: 'Create one incoming-edge counter per gene.', reason: 'The counter tracks unmet prerequisites.', visual: 'Each gene receives an in-degree badge.', state: [['in-degree entries', String(topo.dag_nodes.length)]], takeaway: 'In-degree zero means currently available.', lines: [1], renderPhase: 1 },
-        { title: 'Count dependency edges', action: 'Increment the target counter for every edge.', reason: 'Every incoming dependency must be removed before emission.', visual: 'Badges update from the real DAG edges.', state: [['dependencies counted', String(topo.dag_edges.length)]], takeaway: 'The DAG structure becomes a compact integer array.', lines: [1], renderPhase: 1 },
-        { title: 'Find initial zero-degree genes', action: `Identify ${topo.order.slice(0, 4).join(', ')} as initially available.`, reason: 'They have no unmet prerequisite.', visual: 'Zero badges turn cyan.', state: [['initial zeros', topo.order.slice(0, 4).join(', ')]], takeaway: 'Several valid starting choices can coexist.', lines: [2], renderPhase: 1 },
-        { title: 'Initialize Kahn’s queue', action: 'Enqueue every zero-degree gene.', reason: 'The queue stores valid next outputs.', visual: 'Available genes receive a queue halo.', state: [['queue', topo.order.slice(0, 4).join(' | ')]], takeaway: 'Queue order selects one of many valid topological orders.', lines: [2], renderPhase: 1 },
-        { title: 'Dequeue the first gene', action: `Remove ${topo.order[0]} from the queue.`, reason: 'It has no remaining prerequisite.', visual: 'The first gene turns amber.', state: [['dequeued', topo.order[0]], ['output size', '0']], takeaway: 'Only zero-degree nodes may be emitted.', lines: [3, 4], renderPhase: 2 },
-        { title: 'Append to the output order', action: `Append ${topo.order[0]}.`, reason: 'It is now permanently placed before its dependents.', visual: 'Ordinal 1 appears inside the node.', state: [['output', topo.order[0]]], takeaway: 'Output position records a valid dependency-respecting acquisition point.', lines: [4], renderPhase: 2 },
-        { title: 'Remove outgoing constraints', action: 'Decrement in-degrees of the emitted gene’s neighbors.', reason: 'Their prerequisite has now been satisfied.', visual: 'Outgoing edges and target badges update.', state: [['processed edges', 'outgoing from emitted node']], takeaway: 'Removing a node conceptually removes its outgoing constraints.', lines: [5], renderPhase: 2 },
-        { title: 'Enqueue newly unlocked genes', action: 'Add any neighbor whose in-degree becomes zero.', reason: 'All its prerequisites now appear earlier in the output.', visual: 'New zero-degree genes brighten.', state: [['queue rule', 'enqueue when in-degree = 0']], takeaway: 'Dependencies unlock genes incrementally.', lines: [6], renderPhase: 2 },
-        { title: 'Repeat the queue loop', action: `Emit the remaining order: ${topo.order.slice(1).join(' → ')}.`, reason: 'The same invariant holds at every iteration.', visual: 'Nodes illuminate and receive ordinals in computed order.', state: [['processed', `${topo.order.length}/${topo.dag_nodes.length}`]], takeaway: 'Every edge points from an earlier to a later output node.', lines: [3, 4, 5, 6], renderPhase: 2 },
-        { title: 'Check for a cycle', action: 'Compare emitted node count with total node count.', reason: 'A cycle leaves some nodes with positive in-degree forever.', visual: 'All nodes are numbered, so no cycle remains.', state: [['emitted', String(topo.order.length)], ['has cycle', String(topo.has_cycle)]], calculation: `${topo.order.length} = ${topo.dag_nodes.length}`, takeaway: 'A complete output certifies acyclicity.', lines: [7], renderPhase: 3 },
-        { title: 'Interpret acquisition order', action: 'Read the order as one dependency-consistent clinical sequence.', reason: 'Dependencies constrain ordering without claiming chemical necessity.', visual: 'The full order is displayed below the DAG.', state: [['order', topo.order.join(' → ')]], takeaway: 'The order is valid, but other valid orders may exist.', lines: [8], renderPhase: 3 },
-      ]),
+      steps: topoProgram.guided.map(executionStepToLessonStep),
       pseudocode: [
         { line: 1, code: 'indegree <- count incoming edges for every gene' },
         { line: 2, code: 'queue <- all genes with indegree 0' },
@@ -232,7 +221,7 @@ export function buildAlgorithmLessons(data: GraphData): Record<AlgorithmId, Algo
       question: `Where does the ${bm.gene_name} pattern occur in the reference sequence?`,
       traceNetRole: 'Connects graph-level risk to direct sequence evidence for a clinically important resistance gene.',
       intuition: 'Compare the pattern from right to left. A mismatch can justify skipping alignments that a naive scan would test one by one.',
-      inputDescription: `${bm.pattern_length} bp ${bm.gene_name} pattern searched in ${bm.text_length} bp of reference text.`,
+      inputDescription: `${bm.pattern_length} bp ${bm.gene_name} validation query sampled from zero-based reference offset ${bm.pattern_source_offset ?? 'unknown'}, searched in the single ${bm.text_length} bp FASTA record.`,
       dataStructures: [
         { name: 'Bad-character table', purpose: 'Stores the rightmost pattern occurrence for each DNA symbol.', representation: 'Map over A, C, G, T' },
         { name: 'Alignment offset', purpose: 'Marks the current pattern start in the text.', representation: 'Integer text index' },
@@ -246,13 +235,13 @@ export function buildAlgorithmLessons(data: GraphData): Record<AlgorithmId, Algo
         { line: 4, code: '  j <- pattern.length - 1' },
         { line: 5, code: '  while j >= 0 and pattern[j] = text[shift+j]: j--' },
         { line: 6, code: '  if j >= 0: shift += max(1, j - last[text[shift+j]])' },
-        { line: 7, code: '  else: emit shift as a match' },
+        { line: 7, code: '  else: emit shift; advance by max(1, m - last[next character])' },
         { line: 8, code: 'return matches' },
       ],
       timeComplexity: 'O(nm) worst; sublinear average',
       spaceComplexity: 'O(sigma)',
-      limitations: ['Exact matching misses mutations, indels, and sequencing errors.', 'Measured speedup depends on pattern and text composition.', 'A sequence match supports presence, not expression or phenotypic resistance.'],
-      resultInterpretation: `${bm.gene_name} has ${bm.matches.length} exact matches at offsets ${bm.matches.join(' and ')}. Boyer-Moore used ${bm.comparisons_bm} comparisons versus ${bm.comparisons_naive} for the naive baseline.`,
+      limitations: ['Exact matching misses mutations, indels, and sequencing errors.', 'Only the forward strand is searched; reverse-complement matching requires a second search.', 'Offsets are zero-based and ambiguous bases are treated as literal characters.', 'Measured speedup depends on pattern and text composition.', 'A sequence match supports presence, not expression or phenotypic resistance.'],
+      resultInterpretation: `${bm.gene_name} has ${bm.matches.length} exact forward-strand matches at zero-based offsets ${bm.matches.join(' and ')}. Overlapping matches are supported. This bad-character-only Boyer-Moore run used ${bm.comparisons_bm} comparisons versus ${bm.comparisons_naive} for the naive baseline.`,
     },
     dijkstra: {
       id: 'dijkstra',

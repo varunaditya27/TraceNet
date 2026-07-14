@@ -1,5 +1,5 @@
-10
-8
+16
+18
 tetM
 sul1
 blaTEM
@@ -10,6 +10,12 @@ blaOXA48
 blaNDM1
 mcr1
 vanA
+qnrS1
+ermB
+fosA3
+catA1
+dfrA12
+arr3
 0 2
 1 2
 2 3
@@ -18,3 +24,13 @@ vanA
 6 7
 4 7
 5 8
+1 14
+10 14
+9 11
+2 12
+4 12
+14 5
+12 6
+13 15
+12 15
+8 7

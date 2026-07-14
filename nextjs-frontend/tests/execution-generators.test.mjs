@@ -14,6 +14,7 @@ import {
 } from '../src/lib/execution/floyd-warshall-execution.ts'
 import { generateSCCProgram } from '../src/lib/execution/scc-execution.ts'
 import { generateBFSProgram } from '../src/lib/execution/bfs-execution.ts'
+import { generateTopoProgram } from '../src/lib/execution/topo-execution.ts'
 
 const graphData = JSON.parse(
   await readFile(new URL('../public/data/hgt_graph.json', import.meta.url), 'utf8'),
@@ -52,6 +53,23 @@ test('Kosaraju guided execution preserves discovery order and delays final SCC r
   assert.deepEqual(completed.sort((a, b) => a[0] - b[0]), expected.sort((a, b) => a[0] - b[0]))
 })
 
+test('Kahn execution processes every edge, preserves FIFO order, and detects cycles', () => {
+  const program = generateTopoProgram(graphData)
+  const final = program.full.at(-1).visualState.topo
+  assert.deepEqual(final.output.map(id => graphData.algorithms.topo_sort.dag_nodes[id]), graphData.algorithms.topo_sort.order)
+  assert.equal(final.processedEdges.length, graphData.algorithms.topo_sort.dag_edges.length)
+  assert.ok(final.indegrees.every(degree => degree === 0))
+  assert.equal(final.hasCycle, false)
+  assert.ok(program.guided.length < program.full.length)
+  assert.ok(program.full.some(step => step.visualState.topo.edgeOutcome === 'unlock'))
+
+  const cyclic = structuredClone(graphData)
+  cyclic.algorithms.topo_sort.dag_edges.push([7, 4])
+  const cyclicFinal = generateTopoProgram(cyclic).full.at(-1).visualState.topo
+  assert.equal(cyclicFinal.hasCycle, true)
+  assert.ok(cyclicFinal.output.length < cyclic.algorithms.topo_sort.dag_nodes.length)
+})
+
 test('Boyer-Moore uses a substantially shorter pattern and computes safe shifts', () => {
   const input = graphData.algorithms.boyer_moore
   assert.ok(input.parent_text.length >= input.pattern.length * 8)
@@ -66,7 +84,27 @@ test('Boyer-Moore uses a substantially shorter pattern and computes safe shifts'
     input.matches,
   )
   assert.equal(operations.at(-1).comparisons, input.comparisons_bm)
-  assert.ok(generateBoyerMooreProgram(input).guided.length >= 15)
+  const program = generateBoyerMooreProgram(input)
+  assert.ok(program.guided.length >= 15)
+  const firstMatchIndex = operations.findIndex(operation => operation.kind === 'match')
+  const postMatchShift = operations[firstMatchIndex + 1]
+  const nextCharacter = input.parent_text[postMatchShift.alignment + input.pattern.length]
+  assert.equal(postMatchShift.shift, Math.max(1, input.pattern.length - (table[nextCharacter] ?? -1)))
+  assert.equal(postMatchShift.nextAlignment, postMatchShift.alignment + postMatchShift.shift)
+  const searchStates = program.guided.filter(step => step.phase === 'Search').map(step => step.visualState.boyerMoore)
+  assert.ok(searchStates.every((state, index) => index === 0 || state.alignment >= searchStates[index - 1].alignment))
+  assert.ok(searchStates.every((state, index) => index === 0 || state.comparisons >= searchStates[index - 1].comparisons))
+  assert.equal(program.guided.at(-1).visualState.boyerMoore.stage, 'result')
+  assert.deepEqual(program.guided.at(-1).visualState.boyerMoore.matches, input.matches)
+  assert.equal(input.text_length, 813)
+  assert.equal(input.pattern_source_offset, 137)
+  assert.deepEqual(input.matches, [137])
+
+  const noMatchInput = { ...input, parent_text: 'AAAAAAAA', text_length: 8, pattern: 'TT', pattern_length: 2, matches: [], comparisons_bm: 4, comparisons_naive: 7, speedup: 1.75 }
+  assert.doesNotThrow(() => generateBoyerMooreProgram(noMatchInput))
+  assert.deepEqual(generateBoyerMooreProgram(noMatchInput).guided.at(-1).visualState.boyerMoore.matches, [])
+  const immediateMatchInput = { ...input, parent_text: 'AAAAA', text_length: 5, pattern: 'AAA', pattern_length: 3, matches: [0, 1, 2], comparisons_bm: 9, comparisons_naive: 9, speedup: 1 }
+  assert.doesNotThrow(() => generateBoyerMooreProgram(immediateMatchInput))
 })
 
 test('Floyd-Warshall exposes all V cubed operations and reaches the stored matrix', () => {
